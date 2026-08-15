@@ -1,0 +1,272 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Ground layers — warm near-black, not graphite-blue and not pure #000.
+     R is the highest channel, B the lowest (carbon/asphalt under sodium pit
+     lighting, not a blue-lit monitor). Each step is the same small
+     luminance jump as before: panels read as "on the same desk", not
+     stacked cards. */
+  --color-ground: #100d0c; /* page background */
+  --color-surface: #1a1512; /* header, grid, cards */
+  --color-surface-raised: #241e1a; /* hover, modal, toast — depth cue only, never the sole signal of a state */
+
+  /* Borders: two tiers on purpose. `border` is a decorative hairline (grid
+     row dividers) that does NOT meet 3:1 — content position carries the
+     meaning there, not the line. `border-strong` is for boundaries that are
+     actually load-bearing (input outline, panel/modal edge, dropdown) and is
+     an alias of text-faint specifically because that value is the darkest
+     one in this palette that still clears 3:1 against both ground and
+     surface (3.68:1 / 3.44:1). */
+  --color-border: #2f2621;
+  --color-border-strong: var(--color-text-faint);
+
+  /* Text: three steps, all measured against ground/surface (see DESIGN.md).
+     text-faint is deliberately capped at ~3.4:1 — large text and non-text
+     UI only, never small body copy. */
+  --color-text: #efece9;
+  --color-text-muted: #a89d96;
+  --color-text-faint: #746a64;
+
+  /* The one accent — Le Mans red. A vivid, warm vermilion (hue ~10°, fully
+     saturated) reserved for "this needs the steward's attention right now":
+     focus ring, selected standings rows, primary actions. Never used
+     decoratively (class tints, calm confirmations) so it keeps its meaning.
+     6.08:1 vs ground, 5.69:1 vs surface — clears both text-on-dark and
+     2px-outline use.
+
+     Two structural uses added so the theme reads as red at a glance, not
+     just on rare state changes — neither is decorative tinting, both reuse
+     the existing "current/selected = accent" contract instead of inventing
+     a new one:
+     - Header.tsx: a static 4px top rule. It never changes and never competes
+       with a state signal (nothing else claims "top edge of the page"), so
+       it can't be confused with an attention cue — it's chrome, like the
+       header bar itself.
+     - Nav.tsx: the active tab was accent already (a border-b-2 sliver); it's
+       now a filled bg-accent/10 tab with text-accent and a border-b-4 edge —
+       same "this is the current/selected one" meaning as a selected
+       standings row (border-l-2 border-accent + bg-surface-raised), just
+       given the same visual weight instead of a 2px hint. */
+  --color-accent: #ff5533;
+
+  /* Incident statuses — one color each, never reused for anything else.
+     dismissed is intentionally an alias of text-muted: a dismissed incident
+     is a non-event, so it gets no color of its own, only the neutral tone
+     everything quiet already uses.
+
+     PENALTY_APPLIED vs accent: with the accent now red, a same-hue penalty
+     status would blur into "needs attention" chrome — the exact collision
+     this repaint has to avoid. Resolved by hue, not just intensity:
+     penalty-applied moves to a cooler magenta-crimson (hue ~340°, "wine",
+     30° around the wheel from the accent's warm vermilion) instead of
+     competing in the same orange-red band. It stays unambiguously in the
+     red family (still reads as "serious, negative") while remaining
+     distinguishable from the accent at a glance, in peripheral vision,
+     without reading contrast values — the two are a different color, not
+     just a different shade. It is also semantically right: PENALTY_APPLIED
+     is a past-tense, already-decided state like NO_FURTHER_ACTION and
+     DISMISSED, not a live "look at this now" cue, so it should never have
+     shared the accent's exact hue in the first place. */
+  --color-status-noted: #5b8def;
+  --color-status-under-investigation: #e2a03f;
+  --color-status-no-further-action: #4ea86f;
+  --color-status-penalty-applied: #da4e7d;
+  --color-status-dismissed: var(--color-text-muted);
+
+  /* Session phase badges reuse the status hues wherever the real-world flag
+     color already matches one (see DESIGN.md table) — this is the only
+     phase color that has no status analog. Pulled darker/duller than the
+     original orange (was #d9722f, S69/L52) specifically because the new
+     accent now sits only ~16° away in hue (accent is hue ~10°, this is hue
+     ~26°) — there wasn't room to move it further around the wheel without
+     colliding with UNDER_INVESTIGATION's amber on the other side (hue
+     ~36°), so the separation comes from intensity instead: a duller,
+     burnt-rust orange (S65/L46) next to the accent's neon vermilion reads
+     as a different material, not a paler version of it. Still 5.0:1 /
+     4.68:1. */
+  --color-phase-fcy: #c26b29;
+
+  /* Standings row tints by car class — applied at low alpha only (8%),
+     never as a solid fill. Kept out of the status/accent hue families so a
+     tinted row is never mistaken for a status or an attention cue.
+     class-lmgt3 sits close to phase-fcy and the accent in raw hue, same as
+     before the repaint — left unchanged because it's only ever an 8% wash
+     (a whisper of tint across a whole row), never a saturated badge or
+     outline, so it never competes with the accent's or phase-fcy's full-
+     strength chrome for attention. Re-verified, not re-tuned. */
+  --color-class-hypercar: #3b6fd8;
+  --color-class-lmp2: #2f9e8f;
+  --color-class-lmgt3: #c97a4a;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-ground text-text antialiased;
+  }
+
+  /* Keyboard-first tool: every interactive element gets the same visible
+     ring, applied once here instead of on every component. */
+  *:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Dark scrollbar to match the theme, applied once globally instead of
+     per scroll container (standings grid, incidents grid, incident rail,
+     editor modal all inherit this — no per-component class needed). */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) var(--color-surface);
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--color-surface);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-border-strong);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-faint);
+  }
+
+  /* Customizable <select>: themes the closed control AND the open option
+     list with the same rule, applied once globally (not per Select.tsx
+     caller) — same "one rule covers every instance" pattern as the
+     scrollbar rule above. `appearance: base-select` is the mechanism (see
+     modern-web-guidance: branded-select-styling); it hands the shadow DOM
+     of the picker to author CSS via `::picker(select)`/`::picker-icon`/
+     `::checkmark` while the browser keeps running focus management,
+     keyboard nav (arrows/type-ahead/Esc) and screen-reader bindings — no
+     custom listbox, no JS.
+     `appearance: none` is declared first as the fallback: an unsupported
+     browser treats `base-select` as an invalid value and drops that
+     declaration, leaving `none` in effect — today's exact look (native
+     option list, Select.tsx's own chevron). Supported on Chrome/Edge 135+
+     (Apr 2025) only; Firefox/Safari silently keep the OS-native list. No
+     regression either way, so no @supports gate is needed.
+     `::picker-icon` is hidden because Select.tsx already draws its own
+     chevron for the closed state — without this, a supporting browser
+     would show two arrows. */
+  select {
+    appearance: none;
+    appearance: base-select;
+  }
+
+  select::picker(select) {
+    appearance: base-select;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    padding: 0.25rem;
+  }
+
+  select::picker-icon {
+    display: none;
+  }
+
+  /* Options: surface (closed-control level) at rest, surface-raised on
+     hover/keyboard-highlight — the same hover step every button/row in the
+     app already uses (`hover:bg-surface-raised`), not a new one. The
+     selected option reuses the standings-grid selected-row cue (accent
+     left border) plus bold weight and the browser's own checkmark glyph —
+     three non-color signals, never color alone. */
+  select option {
+    border-radius: var(--radius-sm);
+    padding: 0.375rem 0.5rem;
+    color: var(--color-text);
+  }
+
+  select option:hover,
+  select option:focus {
+    background-color: var(--color-surface-raised);
+  }
+
+  select option:checked {
+    background-color: var(--color-surface-raised);
+    border-left: 2px solid var(--color-accent);
+    font-weight: 600;
+  }
+
+  select option::checkmark {
+    color: var(--color-text);
+  }
+
+  /* TipTap markdown editors (stewardNotes, decision) — one rule set here
+     since both fields share the same editor component and TipTap generates
+     unclassed `<strong>`/`<em>`/`<ul>`/`<ol>` marks that no utility class can
+     target (same "applies to every instance" pattern as the select/scrollbar
+     rules above). Hook: `.markdown-editor` on the bordered wrapper (toolbar +
+     EditorContent). TipTap always marks its editable root `[contenteditable]`
+     regardless of what class the frontend gives EditorContent, so focus and
+     prose rules key off that attribute instead of guessing TipTap's own
+     internal class names (`.ProseMirror`). No headings — the brief only
+     wants bold/italic/lists, so no heading selectors exist to accidentally
+     enable them. */
+  .markdown-editor [contenteditable] {
+    min-height: 6rem;
+  }
+
+  /* The ring moves to the wrapper (below) so it traces the whole bordered
+     surface, not just the cursor-height inner node — same visual result as
+     every other field's border-strong box, just keyed off :has() since the
+     focusable node here is a nested child, not the wrapper itself. */
+  .markdown-editor [contenteditable]:focus-visible {
+    outline: none;
+  }
+
+  .markdown-editor:has([contenteditable]:focus-visible) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .markdown-editor [contenteditable] :is(strong, b) {
+    font-weight: 600;
+  }
+
+  .markdown-editor [contenteditable] :is(em, i) {
+    font-style: italic;
+  }
+
+  .markdown-editor [contenteditable] :is(ul, ol) {
+    margin: 0.25rem 0;
+    padding-left: 1.25rem;
+  }
+
+  .markdown-editor [contenteditable] ul {
+    list-style: disc;
+  }
+
+  .markdown-editor [contenteditable] ol {
+    list-style: decimal;
+  }
+
+  .markdown-editor [contenteditable] li + li {
+    margin-top: 0.125rem;
+  }
+
+  /* Safety net for any transition/animation a component forgets to guard —
+     components should still prefer `motion-reduce:` variants for anything
+     bespoke. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
