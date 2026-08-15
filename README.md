@@ -13,6 +13,16 @@ reads.
 
 ---
 
+## Quick start (no terminal needed)
+
+Double-click **`start-stewardpad.bat`**. It installs Node and pnpm if they are
+missing, creates your `.env`, installs dependencies, starts the tool and opens
+your browser. Keep the black window open — closing it stops StewardPad.
+
+Everything below is the manual equivalent, for anyone who prefers a terminal.
+
+---
+
 ## Prerequisites
 
 - **Node 20 or newer** — <https://nodejs.org> (the LTS installer is fine)
@@ -200,18 +210,19 @@ step by design — this is a local tool on a trusted machine.
 
 Every dependency is justified or it does not go in. Versions are pinned exactly.
 
-| Dependency                              | Why                                                                                                                                         |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@nestjs/*`, `reflect-metadata`, `rxjs` | The backend framework named in the spec.                                                                                                    |
-| `socket.io` / `socket.io-client`        | Pushes standings and incidents to the browser without polling.                                                                              |
-| `class-validator`, `class-transformer`  | Validates every request body; a malformed request is rejected, not half-applied.                                                            |
-| `react`, `react-dom`                    | The UI framework named in the spec.                                                                                                         |
-| `vite`, `@vitejs/plugin-react`          | Dev server and build; proxies `/api` and the socket.                                                                                        |
-| `tailwindcss`, `@tailwindcss/vite`      | Styling; design tokens live in `src/index.css`.                                                                                             |
-| `typescript`, `@types/*`                | Types. Pinned to 6.0.3 — the Nest CLI cannot use TypeScript 7's compiler API yet.                                                           |
-| `@nestjs/cli`                           | Builds and watch-runs the backend with decorator metadata intact (esbuild-based runners drop it, which breaks Nest's dependency injection). |
-| `prettier`                              | Formatting.                                                                                                                                 |
-| `tsx`                                   | Runs a TypeScript file directly — used by `pnpm discover` and `pnpm test`.                                                                  |
+| Dependency                                                               | Why                                                                                                                                         |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@nestjs/*`, `reflect-metadata`, `rxjs`                                  | The backend framework named in the spec.                                                                                                    |
+| `socket.io` / `socket.io-client`                                         | Pushes standings and incidents to the browser without polling.                                                                              |
+| `class-validator`, `class-transformer`                                   | Validates every request body; a malformed request is rejected, not half-applied.                                                            |
+| `react`, `react-dom`                                                     | The UI framework named in the spec.                                                                                                         |
+| `vite`, `@vitejs/plugin-react`                                           | Dev server and build; proxies `/api` and the socket.                                                                                        |
+| `tailwindcss`, `@tailwindcss/vite`                                       | Styling; design tokens live in `src/index.css`.                                                                                             |
+| `typescript`, `@types/*`                                                 | Types. Pinned to 6.0.3 — the Nest CLI cannot use TypeScript 7's compiler API yet.                                                           |
+| `@nestjs/cli`                                                            | Builds and watch-runs the backend with decorator metadata intact (esbuild-based runners drop it, which breaks Nest's dependency injection). |
+| `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/markdown` | Rich-text markdown editor for stewardNotes and decision fields; stores plain markdown strings so the CSV export path is unaffected.         |
+| `prettier`                                                               | Formatting.                                                                                                                                 |
+| `tsx`                                                                    | Runs a TypeScript file directly — used by `pnpm discover` and `pnpm test`.                                                                  |
 
 Deliberately **not** used: no axios (native `fetch`), no uuid
 (`crypto.randomUUID()`), no CSV library (hand-written generator — the Excel
