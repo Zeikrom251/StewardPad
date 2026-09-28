@@ -1,0 +1,14 @@
+{
+  "currentEventTime": 2685.2000000000003,
+  "endEventTime": 3600,
+  "gameMode": "UNKNOWN",
+  "gamePhase": 5,
+  "maxPlayers": 34,
+  "numberOfVehicles": 18,
+  "playerName": "Ryan Chikhi",
+  "serverName": "",
+  "session": "PRACTICE1",
+  "startEventTime": 30,
+  "trackName": "Autodromo Nazionale Monza",
+  "yellowFlagState": "NONE"
+}

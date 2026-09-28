@@ -1,0 +1,22 @@
+[package]
+name = "stewardpad-desktop"
+version = "0.1.0"
+description = "StewardPad — race control for Le Mans Ultimate stewards"
+edition = "2021"
+
+[lib]
+# The _lib suffix avoids a name clash with the binary on Windows (cargo#8519).
+name = "stewardpad_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.7.0", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.0", features = [] }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+# Incident ids — random v4, same as crypto.randomUUID() in the NestJS server.
+uuid = { version = "=1.26.1", features = ["v4"] }
+# LMU REST polling over plain http://localhost — no TLS, so default features off.
+ureq = { version = "=3.4.2", default-features = false }
