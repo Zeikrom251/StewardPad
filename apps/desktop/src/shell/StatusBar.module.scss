@@ -1,0 +1,50 @@
+.bar {
+  height: var(--statusbar-height);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 12px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  font: 500 11.5px var(--font-ui);
+  color: var(--color-text-muted);
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+
+  &[data-link='connected'],
+  &[data-link='simulator'] {
+    color: var(--color-text);
+    --dot: var(--color-status-no-further-action);
+  }
+
+  &[data-link='offline'] {
+    color: var(--color-accent);
+    --dot: var(--color-accent);
+  }
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dot, var(--color-text-faint));
+}
+
+.open {
+  color: var(--color-status-under-investigation);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.value {
+  font-weight: 600;
+  color: var(--color-text);
+}

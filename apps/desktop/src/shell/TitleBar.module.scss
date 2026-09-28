@@ -1,0 +1,71 @@
+.bar {
+  height: var(--titlebar-height);
+  flex: none;
+  display: flex;
+  align-items: center;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.side,
+.sideEnd {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.side {
+  padding-left: 14px;
+}
+
+.sideEnd {
+  justify-content: flex-end;
+  gap: 0;
+}
+
+.divider {
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--color-border);
+}
+
+.windowButton {
+  width: 46px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+
+  &:hover {
+    background: var(--color-surface-raised);
+    color: var(--color-text);
+  }
+}
+
+// Windows convention: close turns red on hover. Brand red is a large fill here, not text.
+.close {
+  composes: windowButton;
+
+  &:hover {
+    background: var(--color-brand-red);
+    color: #fff;
+  }
+}
+
+// Amber, not accent: simulated data is a caution, not an attention-now event.
+.simulator {
+  margin-right: 12px;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--color-status-under-investigation) 40%, transparent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-status-under-investigation) 12%, transparent);
+  color: var(--color-status-under-investigation);
+  font: 700 11.5px/1.2 var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

@@ -1,0 +1,93 @@
+.label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.track {
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.type {
+  font: 700 12px var(--font-label);
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.center {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+// Flag chip: colour follows the real-world flag; the label always carries the meaning.
+.phase {
+  --flag: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--flag) 45%, transparent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--flag) 14%, transparent);
+  color: var(--flag);
+  font: 700 12px/1.2 var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  i {
+    width: 12px;
+    height: 9px;
+    border-radius: 1.5px;
+    background: var(--flag);
+  }
+
+  &[data-phase='GREEN'] {
+    --flag: var(--color-status-no-further-action);
+  }
+  &[data-phase='YELLOW'] {
+    --flag: var(--color-status-under-investigation);
+  }
+  &[data-phase='FCY'] {
+    --flag: var(--color-phase-fcy);
+  }
+  &[data-phase='SAFETY_CAR'] {
+    --flag: var(--color-status-noted);
+  }
+  // A red flag is a live "stop, attention now" event — exactly what the accent is for.
+  &[data-phase='RED'] {
+    --flag: var(--color-accent);
+  }
+}
+
+.clock {
+  font: 600 20px/1 var(--font-mono);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.clockStale {
+  composes: clock;
+  color: var(--color-text-faint);
+}
+
+.remaining {
+  display: flex;
+  flex-direction: column;
+  font: 500 12px var(--font-mono);
+  color: var(--color-text-muted);
+
+  small {
+    font: 700 9.5px/1.2 var(--font-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-faint);
+  }
+}
