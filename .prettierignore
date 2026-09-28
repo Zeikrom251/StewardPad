@@ -4,3 +4,5 @@ data
 scripts/output
 pnpm-lock.yaml
 LICENSE
+apps/desktop/src-tauri/target
+apps/desktop/src-tauri/gen

@@ -190,17 +190,21 @@ pnpm lint             # typecheck every package + prettier --check
 pnpm format           # prettier --write
 pnpm test             # node:test via tsx
 pnpm discover         # Phase 0 LMU discovery — requires LMU running
+pnpm desktop          # Tauri desktop app (dev) — run on Windows, needs Rust
+pnpm desktop:build    # Windows installer (.exe) in apps/desktop/src-tauri/target/release/bundle
+pnpm desktop:test     # the desktop backend's Rust tests (cargo test)
 ```
 
 ### Layout
 
-| Path              | Package              | What it is                                    |
-| ----------------- | -------------------- | --------------------------------------------- |
-| `apps/server`     | `@stewardpad/server` | NestJS, Socket.IO gateway, LMU adapter        |
-| `apps/client`     | `@stewardpad/client` | React, Vite, Tailwind                         |
-| `packages/shared` | `@stewardpad/shared` | Domain types shared by both apps — types only |
-| `scripts/`        | —                    | `discover-lmu.ts`, the Phase 0 probe          |
-| `data/`           | —                    | gitignored session state                      |
+| Path              | Package               | What it is                                    |
+| ----------------- | --------------------- | --------------------------------------------- |
+| `apps/server`     | `@stewardpad/server`  | NestJS, Socket.IO gateway, LMU adapter        |
+| `apps/client`     | `@stewardpad/client`  | React, Vite, Tailwind                         |
+| `apps/desktop`    | `@stewardpad/desktop` | Tauri 2 desktop app: React, Vite, SCSS + Rust |
+| `packages/shared` | `@stewardpad/shared`  | Domain types shared by both apps — types only |
+| `scripts/`        | —                     | `discover-lmu.ts`, the Phase 0 probe          |
+| `data/`           | —                     | gitignored session state                      |
 
 Shared types are defined once in `packages/shared` and imported by both apps,
 never duplicated. There is no database, no authentication, and no deployment
@@ -223,6 +227,12 @@ Every dependency is justified or it does not go in. Versions are pinned exactly.
 | `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/markdown` | Rich-text markdown editor for stewardNotes and decision fields; stores plain markdown strings so the CSV export path is unaffected.         |
 | `prettier`                                                               | Formatting.                                                                                                                                 |
 | `tsx`                                                                    | Runs a TypeScript file directly — used by `pnpm discover` and `pnpm test`.                                                                  |
+| `@tauri-apps/cli`, `tauri`, `tauri-build` (crates)                       | Desktop app: packages the React UI in a native Windows window and builds the installer, without shipping a whole browser.                   |
+| `@tauri-apps/api`                                                        | Lets the desktop UI drive its own window (custom title bar: drag, minimise, maximise, close).                                               |
+| `sass`                                                                   | SCSS for the desktop app's styles (CSS modules + brand tokens in `apps/desktop/src/styles`).                                                |
+| `serde`, `serde_json` (crates)                                           | The desktop backend's JSON: the session file, LMU responses, and the payloads the UI receives.                                              |
+| `uuid` (crate)                                                           | Random v4 incident ids, same as `crypto.randomUUID()` in the NestJS server.                                                                 |
+| `ureq` (crate)                                                           | Polls LMU's REST API over plain `http://localhost` (TLS features off) — a small blocking client on the adapter's own thread.                |
 
 Deliberately **not** used: no axios (native `fetch`), no uuid
 (`crypto.randomUUID()`), no CSV library (hand-written generator — the Excel

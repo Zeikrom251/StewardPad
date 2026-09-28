@@ -10,6 +10,9 @@
     "dev": "pnpm --filter @stewardpad/shared build && pnpm --parallel --filter @stewardpad/server --filter @stewardpad/client dev",
     "build": "pnpm --filter @stewardpad/shared build && pnpm --filter @stewardpad/server build && pnpm --filter @stewardpad/client build",
     "discover": "tsx scripts/discover-lmu.ts",
+    "desktop": "pnpm --filter @stewardpad/desktop tauri dev",
+    "desktop:build": "pnpm --filter @stewardpad/desktop tauri build",
+    "desktop:test": "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml",
     "lint": "pnpm --filter @stewardpad/shared build && pnpm -r exec tsc --noEmit && prettier --check .",
     "format": "prettier --write .",
     "test": "node scripts/run-tests.mjs"

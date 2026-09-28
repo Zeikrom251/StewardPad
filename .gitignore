@@ -155,3 +155,7 @@ data/
 
 # Phase 0 discovery output — machine-specific LMU responses
 scripts/output/
+
+# Tauri — Rust build output and generated schemas
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
