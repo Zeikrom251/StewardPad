@@ -1,0 +1,62 @@
+# Every pull request (and main after a merge): lint, test and build everything, including the
+# Windows desktop app. A red check means the work is not ready to merge.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: Lint, test and build (TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6 # version from package.json "packageManager"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test
+      - name: Build the website
+        run: pnpm build
+
+  desktop:
+    name: Test and build the desktop app (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+      # tauri::generate_context! embeds the UI at compile time, so it is built before any cargo step.
+      - name: Build the desktop UI
+        run: |
+          pnpm --filter @stewardpad/shared build
+          pnpm --filter @stewardpad/desktop build
+      - name: Clippy
+        working-directory: apps/desktop/src-tauri
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Rust tests
+        run: pnpm desktop:test
+      - name: Build StewardPad.exe
+        run: pnpm --filter @stewardpad/desktop tauri build --no-bundle
