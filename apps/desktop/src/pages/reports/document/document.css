@@ -1,7 +1,7 @@
 /* The decisions document: a formal A4 page in black ink with one accent. It opens outside
    the app (no app fonts), so it uses the metric-compatible Arial family everywhere. */
 :root {
-  /* The brand mark reads the app's own token names (brand/Mark.tsx). */
+  /* The brand mark reads the app's own token names (@stewardpad/brand, Mark.tsx). */
   --color-accent: #e0302a;
   --color-brand-red: #d4202b;
   --color-brand-red-lo: #a8101c;

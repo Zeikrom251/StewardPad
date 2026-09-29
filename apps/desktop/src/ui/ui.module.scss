@@ -1,4 +1,4 @@
-@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
 @use 'buttons';
 
 // Shared controls (design/01-foundations.html → Components). Compose with cx().

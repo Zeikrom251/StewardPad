@@ -1,7 +1,6 @@
 import { isTauri } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { Mark } from '../brand/Mark'
-import { Wordmark } from '../brand/Wordmark'
+import { Mark, Wordmark } from '@stewardpad/brand'
 import { Icon, type IconName } from '../icons'
 import { useLive } from '../backend/LiveProvider'
 import { useWorkspace } from '../workspace/Workspace'

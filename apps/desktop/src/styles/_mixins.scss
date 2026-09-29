@@ -1,0 +1,15 @@
+// Desktop-only SCSS helpers. The brand tokens themselves are CSS custom properties in
+// @stewardpad/brand (tokens.css), shared with the website.
+:root {
+  --titlebar-height: 44px;
+  --statusbar-height: 28px;
+  --rail-width: 64px;
+}
+
+// Section label: condensed caps, the race-control voice.
+@mixin label {
+  font: 600 12px/1 var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
