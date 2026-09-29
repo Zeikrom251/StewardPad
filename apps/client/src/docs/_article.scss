@@ -1,0 +1,185 @@
+@use '../styles/mixins' as *;
+
+// Documentation typography: long reading, short lines, the app's voice in the details.
+.article {
+  max-width: 760px;
+  min-width: 0;
+  font-size: 17px;
+  line-height: 1.7;
+
+  h1 {
+    margin: 6px 0 16px;
+    font: 700 clamp(34px, 4vw, 44px) / 1.1 var(--font-ui);
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    margin: 44px 0 12px;
+    font: 700 25px/1.25 var(--font-ui);
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    margin: 28px 0 8px;
+    font: 700 19px var(--font-ui);
+  }
+
+  p,
+  ul,
+  ol,
+  table,
+  pre,
+  figure,
+  aside {
+    margin-bottom: 16px;
+  }
+
+  p,
+  li {
+    color: color-mix(in srgb, var(--color-text) 86%, var(--color-text-muted));
+  }
+
+  ul,
+  ol {
+    padding-left: 22px;
+
+    li + li {
+      margin-top: 6px;
+    }
+  }
+
+  b {
+    color: var(--color-text);
+  }
+
+  a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+    text-underline-offset: 3px;
+
+    &:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  code {
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--color-surface-raised);
+    font-size: 0.86em;
+  }
+
+  pre {
+    overflow-x: auto;
+    padding: 16px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+
+    code {
+      padding: 0;
+      background: none;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15.5px;
+
+    th {
+      @include label;
+      padding: 8px 12px 8px 0;
+      border-bottom: 1px solid var(--color-border-strong);
+      text-align: left;
+    }
+
+    td {
+      padding: 12px 12px 12px 0;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: top;
+    }
+  }
+
+  :global(.lead) {
+    font-size: 19px;
+    color: var(--color-text-muted);
+  }
+}
+
+.section {
+  @include label;
+  color: var(--color-accent);
+}
+
+.callout {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent);
+  background: color-mix(in srgb, var(--tone) 9%, transparent);
+  font-size: 16px;
+
+  --tone: var(--color-status-no-further-action);
+
+  &[data-tone='warn'] {
+    --tone: var(--color-status-under-investigation);
+  }
+
+  // Stewards only: the app's hatched "internal" surface.
+  &[data-tone='private'] {
+    --tone: var(--color-text-muted);
+    background: repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-text) 3%, transparent) 0 6px,
+      transparent 6px 12px
+    );
+  }
+
+  > svg {
+    flex: none;
+    margin-top: 4px;
+    color: var(--tone);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.shot {
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+
+  img {
+    width: 100%;
+    height: auto;
+  }
+
+  figcaption {
+    padding: 10px 14px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+    font-size: 14px;
+    color: var(--color-text-muted);
+  }
+}
+
+.keys td:first-child {
+  width: 150px;
+  white-space: nowrap;
+}
+
+.path {
+  padding: 1px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-weight: 600;
+  white-space: nowrap;
+}

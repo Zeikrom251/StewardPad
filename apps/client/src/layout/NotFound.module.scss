@@ -1,0 +1,38 @@
+@use '../styles/mixins' as *;
+
+.notFound {
+  @include container(640px);
+  padding: 120px 0 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+
+  h1 {
+    font: 700 44px/1.1 var(--font-ui);
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    color: var(--color-text-muted);
+  }
+}
+
+// A flag panel, as in the app's session phase badge.
+.flag {
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 50%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  color: var(--color-accent);
+  font: 700 13px var(--font-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}

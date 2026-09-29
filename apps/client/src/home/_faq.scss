@@ -1,0 +1,95 @@
+@use '../styles/mixins' as *;
+
+// The FAQ and the closing call to action.
+.faq {
+  padding-top: 140px;
+}
+
+.faqList {
+  @include container(820px);
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+
+  details {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 4px;
+    font: 600 19px var(--font-ui);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::after {
+      content: '+';
+      font: 400 24px/1 var(--font-mono);
+      color: var(--color-accent);
+    }
+  }
+
+  details[open] summary::after {
+    content: '−';
+  }
+
+  p {
+    padding: 0 4px 22px;
+    color: var(--color-text-muted);
+
+    a {
+      color: var(--color-accent);
+    }
+  }
+}
+
+// The brand's alt tile (installer, splash, store listing): the one red surface on the site.
+.cta {
+  @include container(1180px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 140px;
+  padding: 72px 32px;
+  border-radius: 20px;
+  background: linear-gradient(
+    160deg,
+    var(--color-accent),
+    var(--color-brand-red) 55%,
+    var(--color-brand-red-lo)
+  );
+  text-align: center;
+
+  h2 {
+    font: 700 clamp(32px, 4.4vw, 48px) / 1.08 var(--font-ui);
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+
+  p {
+    max-width: 560px;
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  .actions {
+    margin-top: 10px;
+  }
+
+  // On the red tile the secondary button turns Ink, the ghost one white.
+  a:first-child {
+    border-color: transparent;
+    background: var(--color-ground);
+  }
+
+  a:last-child {
+    color: #fff;
+  }
+}

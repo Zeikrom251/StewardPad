@@ -1,0 +1,87 @@
+@use '../styles/mixins' as *;
+@use 'hero';
+@use 'features';
+@use 'sections';
+@use 'faq';
+
+// Shared by every home section.
+.eyebrow {
+  @include label;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-accent);
+
+  &::before {
+    content: '';
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+  }
+}
+
+.sectionHead {
+  @include container(760px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 56px;
+  text-align: center;
+
+  h2 {
+    font: 700 clamp(32px, 4.2vw, 46px) / 1.08 var(--font-ui);
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    font-size: 18px;
+    color: var(--color-text-muted);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 15.5px var(--font-ui);
+  color: var(--color-accent);
+
+  svg {
+    transition: transform 120ms ease;
+  }
+
+  &:hover svg {
+    transform: translateX(3px);
+  }
+}
+
+// A real screen of the app in a window frame (Screenshot.tsx).
+.frame {
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 40px 90px -30px rgba(0, 0, 0, 0.85);
+
+  img {
+    width: 100%;
+    height: auto;
+  }
+
+  // The decisions document is paper: a white sheet, not a window.
+  &[data-tall] {
+    border-color: transparent;
+    border-radius: 4px;
+    background: #fff;
+  }
+}

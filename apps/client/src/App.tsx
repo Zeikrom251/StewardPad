@@ -1,32 +1,28 @@
-import { AppDataProvider } from './context/AppDataProvider'
-import { Header } from './components/Header'
-import { Nav } from './components/Nav'
-import { IncidentEditor } from './components/IncidentEditor'
-import { GlobalShortcuts } from './components/GlobalShortcuts'
-import { DashboardPage } from './pages/DashboardPage'
-import { IncidentsPage } from './pages/IncidentsPage'
-import { ExportPage } from './pages/ExportPage'
-import { usePathname } from './lib/router'
+import type { ReactNode } from 'react'
+import { DocsPage } from './docs/DocsPage'
+import { DownloadPage } from './download/DownloadPage'
+import { HomePage } from './home/HomePage'
+import { Footer } from './layout/Footer'
+import { Nav } from './layout/Nav'
+import { NotFound } from './layout/NotFound'
+import { usePath, useScrollOnNavigate } from './router'
 
-function CurrentPage() {
-  const pathname = usePathname()
-  if (pathname === '/incidents') return <IncidentsPage />
-  if (pathname === '/export') return <ExportPage />
-  return <DashboardPage />
+function page(path: string): ReactNode {
+  if (path === '/') return <HomePage />
+  if (path === '/download') return <DownloadPage />
+  if (path === '/docs' || path.startsWith('/docs/')) return <DocsPage slug={path.slice(6)} />
+  return <NotFound />
 }
 
+/** The website: home, download and the documentation, around one header and footer. */
 export function App() {
+  const path = usePath()
+  useScrollOnNavigate(path)
   return (
-    <AppDataProvider>
-      <div className="flex h-screen flex-col">
-        <Header />
-        <Nav />
-        <main className="flex-1 overflow-hidden">
-          <CurrentPage />
-        </main>
-      </div>
-      <IncidentEditor />
-      <GlobalShortcuts />
-    </AppDataProvider>
+    <>
+      <Nav />
+      <main>{page(path)}</main>
+      <Footer />
+    </>
   )
 }
