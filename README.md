@@ -210,6 +210,22 @@ a PDF or Google Doc as plain text); every line starting with a rule number — `
 a collision`, `Article 12: Track limits` — becomes a rule. The inspector then offers a
 "Rules broken" picker, and the chosen rules go in both CSV exports.
 
+### Checks and releases (GitHub Actions)
+
+**Every pull request** runs `.github/workflows/ci.yml`: lint, tests and the website build on
+Linux, then clippy, the Rust tests and a full `StewardPad.exe` build on Windows. Merge only
+when both checks are green.
+
+**Publishing a release** runs `.github/workflows/release.yml`, which builds the Windows
+installer and attaches it to the release. To ship version 0.2.0:
+
+1. Set `"version": "0.2.0"` in `apps/desktop/src-tauri/tauri.conf.json` (and in
+   `apps/desktop/package.json` and `Cargo.toml`, to keep them in step), merge to `main`.
+2. On GitHub, **Releases → Draft a new release**, tag `v0.2.0` on `main`, publish.
+
+The workflow stops if the tag does not match the app version. The installer is built only
+for a published release, never for a pull request.
+
 ### Layout
 
 | Path              | Package               | What it is                                    |
