@@ -184,8 +184,8 @@ set `networkingMode=mirrored` in `.wslconfig`.
 ### Commands
 
 ```bash
-pnpm dev              # backend + frontend together
-pnpm build            # shared → backend → frontend (order matters)
+pnpm dev              # the website, on localhost:5173
+pnpm build            # shared → website; set SITE_URL (the deployed address) for link previews
 pnpm lint             # typecheck every package + prettier --check
 pnpm format           # prettier --write
 pnpm test             # node:test via tsx
