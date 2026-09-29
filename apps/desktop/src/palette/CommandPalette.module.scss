@@ -1,0 +1,132 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 108px;
+  background: rgba(6, 8, 11, 0.62);
+}
+
+.palette {
+  width: 640px;
+  max-height: calc(100% - 160px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 70%, transparent);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+}
+
+.input {
+  height: 52px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+
+  input {
+    flex: 1 1 0;
+    min-width: 0;
+    background: none;
+    border: 0;
+    outline: none;
+    font: 400 16px var(--font-ui);
+    color: var(--color-text);
+    caret-color: var(--color-accent);
+
+    &::placeholder {
+      color: var(--color-text-faint);
+    }
+  }
+}
+
+.results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 8px 0;
+
+  > span:first-child {
+    padding: 4px 8px 6px;
+  }
+}
+
+.option {
+  height: 40px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border-radius: 6px;
+  text-align: left;
+
+  &[aria-selected='true'] {
+    background: var(--color-surface-raised);
+    box-shadow: inset 3px 0 0 var(--color-accent);
+  }
+}
+
+.lead {
+  min-width: 34px;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-faint);
+}
+
+.main {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13.5px;
+}
+
+.sub {
+  font-size: 11.5px;
+}
+
+.right {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.empty {
+  padding: 20px 16px;
+  color: var(--color-text-muted);
+}
+
+.foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 16px;
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-muted);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
