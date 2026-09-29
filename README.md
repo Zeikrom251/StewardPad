@@ -195,6 +195,22 @@ pnpm desktop:build    # Windows installer (.exe) in apps/desktop/src-tauri/targe
 pnpm desktop:test     # the desktop backend's Rust tests (cargo test)
 ```
 
+In the desktop app, the data source (Le Mans Ultimate or the simulator) is switched in
+**Settings → Data source** while it runs. The choice is saved, and `LMU_ADAPTER` applies
+only to the NestJS server.
+
+**Several stewards, one session.** Stewards split the incidents between them. Each one
+exports a session file (Reports → Share with the other stewards), and one steward imports
+the others' files. Incidents LMU detected are matched across PCs by contact; the treated
+copy wins over an untouched one; if two stewards edited the same incident, the newer edit
+wins and it's flagged. Incidents only one steward logged are added with the next free
+number. The session is backed up to the archive folder before every import.
+
+**League rule book (optional).** Settings → Rule book imports a `.txt` or `.md` file (save
+a PDF or Google Doc as plain text); every line starting with a rule number — `3.2 Causing
+a collision`, `Article 12: Track limits` — becomes a rule. The inspector then offers a
+"Rules broken" picker, and the chosen rules go in both CSV exports.
+
 ### Layout
 
 | Path              | Package               | What it is                                    |
@@ -214,25 +230,26 @@ step by design — this is a local tool on a trusted machine.
 
 Every dependency is justified or it does not go in. Versions are pinned exactly.
 
-| Dependency                                                               | Why                                                                                                                                         |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@nestjs/*`, `reflect-metadata`, `rxjs`                                  | The backend framework named in the spec.                                                                                                    |
-| `socket.io` / `socket.io-client`                                         | Pushes standings and incidents to the browser without polling.                                                                              |
-| `class-validator`, `class-transformer`                                   | Validates every request body; a malformed request is rejected, not half-applied.                                                            |
-| `react`, `react-dom`                                                     | The UI framework named in the spec.                                                                                                         |
-| `vite`, `@vitejs/plugin-react`                                           | Dev server and build; proxies `/api` and the socket.                                                                                        |
-| `tailwindcss`, `@tailwindcss/vite`                                       | Styling; design tokens live in `src/index.css`.                                                                                             |
-| `typescript`, `@types/*`                                                 | Types. Pinned to 6.0.3 — the Nest CLI cannot use TypeScript 7's compiler API yet.                                                           |
-| `@nestjs/cli`                                                            | Builds and watch-runs the backend with decorator metadata intact (esbuild-based runners drop it, which breaks Nest's dependency injection). |
-| `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/markdown` | Rich-text markdown editor for stewardNotes and decision fields; stores plain markdown strings so the CSV export path is unaffected.         |
-| `prettier`                                                               | Formatting.                                                                                                                                 |
-| `tsx`                                                                    | Runs a TypeScript file directly — used by `pnpm discover` and `pnpm test`.                                                                  |
-| `@tauri-apps/cli`, `tauri`, `tauri-build` (crates)                       | Desktop app: packages the React UI in a native Windows window and builds the installer, without shipping a whole browser.                   |
-| `@tauri-apps/api`                                                        | Lets the desktop UI drive its own window (custom title bar: drag, minimise, maximise, close).                                               |
-| `sass`                                                                   | SCSS for the desktop app's styles (CSS modules + brand tokens in `apps/desktop/src/styles`).                                                |
-| `serde`, `serde_json` (crates)                                           | The desktop backend's JSON: the session file, LMU responses, and the payloads the UI receives.                                              |
-| `uuid` (crate)                                                           | Random v4 incident ids, same as `crypto.randomUUID()` in the NestJS server.                                                                 |
-| `ureq` (crate)                                                           | Polls LMU's REST API over plain `http://localhost` (TLS features off) — a small blocking client on the adapter's own thread.                |
+| Dependency                                                               | Why                                                                                                                                                 |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@nestjs/*`, `reflect-metadata`, `rxjs`                                  | The backend framework named in the spec.                                                                                                            |
+| `socket.io` / `socket.io-client`                                         | Pushes standings and incidents to the browser without polling.                                                                                      |
+| `class-validator`, `class-transformer`                                   | Validates every request body; a malformed request is rejected, not half-applied.                                                                    |
+| `react`, `react-dom`                                                     | The UI framework named in the spec.                                                                                                                 |
+| `vite`, `@vitejs/plugin-react`                                           | Dev server and build; proxies `/api` and the socket.                                                                                                |
+| `tailwindcss`, `@tailwindcss/vite`                                       | Styling; design tokens live in `src/index.css`.                                                                                                     |
+| `typescript`, `@types/*`                                                 | Types. Pinned to 6.0.3 — the Nest CLI cannot use TypeScript 7's compiler API yet.                                                                   |
+| `@nestjs/cli`                                                            | Builds and watch-runs the backend with decorator metadata intact (esbuild-based runners drop it, which breaks Nest's dependency injection).         |
+| `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/markdown` | Rich-text markdown editor for stewardNotes and decision fields (client and desktop); stores plain markdown strings so the CSV export is unaffected. |
+| `prettier`                                                               | Formatting.                                                                                                                                         |
+| `tsx`                                                                    | Runs a TypeScript file directly — used by `pnpm discover` and `pnpm test`.                                                                          |
+| `@tauri-apps/cli`, `tauri`, `tauri-build` (crates)                       | Desktop app: packages the React UI in a native Windows window and builds the installer, without shipping a whole browser.                           |
+| `@tauri-apps/api`                                                        | Lets the desktop UI drive its own window (custom title bar: drag, minimise, maximise, close).                                                       |
+| `sass`                                                                   | SCSS for the desktop app's styles (CSS modules + brand tokens in `apps/desktop/src/styles`).                                                        |
+| `serde`, `serde_json` (crates)                                           | The desktop backend's JSON: the session file, LMU responses, and the payloads the UI receives.                                                      |
+| `uuid` (crate)                                                           | Random v4 incident ids, same as `crypto.randomUUID()` in the NestJS server.                                                                         |
+| `ureq` (crate)                                                           | Polls LMU's REST API over plain `http://localhost` (TLS features off) — a small blocking client on the adapter's own thread.                        |
+| `tauri-plugin-dialog` (crate), `@tauri-apps/plugin-dialog`               | Native Windows Save / folder dialogs for the CSV exports and the archive folder.                                                                    |
 
 Deliberately **not** used: no axios (native `fetch`), no uuid
 (`crypto.randomUUID()`), no CSV library (hand-written generator — the Excel
