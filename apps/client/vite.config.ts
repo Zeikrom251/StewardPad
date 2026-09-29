@@ -20,8 +20,26 @@ function spaFallback(): Plugin {
   }
 }
 
+/**
+ * Link previews (X, Discord, Slack) only load an absolute og:image URL, so the build prefixes
+ * it with SITE_URL, the address the site is deployed at.
+ */
+function absoluteOgImage(site: string | undefined): Plugin {
+  return {
+    name: 'absolute-og-image',
+    apply: 'build',
+    configResolved(config) {
+      if (!site) config.logger.warn('SITE_URL is not set: link previews will show no image.')
+    },
+    transformIndexHtml(html) {
+      if (!site) return html
+      return html.replace('content="/og.jpg"', `content="${site.replace(/\/$/, '')}/og.jpg"`)
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), spaFallback()],
+  plugins: [react(), spaFallback(), absoluteOgImage(process.env.SITE_URL)],
   // The site offers the version the desktop app builds: one number, from its Tauri config.
   define: { __APP_VERSION__: JSON.stringify(desktop.version) },
   server: { port: 5173, strictPort: true },
