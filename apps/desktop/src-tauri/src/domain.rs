@@ -49,6 +49,10 @@ pub enum InvolvedRole {
     Reported,
     Reporter,
     Involved,
+    /// The car the stewards hold responsible.
+    Caused,
+    /// The car that suffered from it (spun, lost places, forced off).
+    Affected,
 }
 
 /// 'LMU' incidents are auto-created from LMU's incidents feed; never client-writable.
@@ -85,6 +89,15 @@ pub struct Penalty {
     pub notes: String,
 }
 
+/// A rule from the league's rule book, copied onto the incident (code + title) so an
+/// export stays right even after the rule book is replaced.
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct RuleRef {
+    pub code: String,
+    pub title: String,
+}
+
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Incident {
@@ -98,6 +111,10 @@ pub struct Incident {
     pub merged_into_id: Option<String>,
     #[serde(default)]
     pub merged_from_ids: Vec<String>,
+    /// The LMU contact it came from — identical on every steward's PC in the session, so a
+    /// shared session file recognises the same incident. None for steward-logged ones.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lmu_key: Option<String>,
     /// When it HAPPENED, after the look-back offset.
     pub event_seconds: f64,
     /// When the steward pressed the key.
@@ -117,6 +134,9 @@ pub struct Incident {
     /// Published wording, goes to drivers.
     pub decision: String,
     pub penalty: Option<Penalty>,
+    /// Rules the steward found broken. Absent on older files.
+    #[serde(default)]
+    pub rules: Vec<RuleRef>,
     pub logged_by: String,
     pub reviewed_by: Option<String>,
     pub created_at: String,

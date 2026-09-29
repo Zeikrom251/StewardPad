@@ -6,7 +6,10 @@ mod mock;
 pub mod resolver;
 mod rest;
 
-use serde::Serialize;
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
+
+use serde::{Deserialize, Serialize};
 
 use crate::domain::{SessionInfo, StandingEntry};
 use resolver::LmuCollision;
@@ -24,31 +27,25 @@ pub enum LmuEvent {
     Disconnected,
 }
 
-#[derive(Serialize, Clone, Copy, PartialEq, Eq, Debug)]
+/// The data source, chosen in Settings and saved with the session. The simulator is the
+/// default: a fresh install has something to train on before the game is running.
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum AdapterName {
+    #[default]
     Mock,
     Rest,
 }
 
-impl AdapterName {
-    /// LMU_ADAPTER=rest reads the game; anything else runs the simulator (the default).
-    pub fn from_env() -> Self {
-        match std::env::var("LMU_ADAPTER").as_deref() {
-            Ok("rest") => AdapterName::Rest,
-            _ => AdapterName::Mock,
-        }
-    }
-}
-
-/// Starts the adapter on a background thread. It never returns and never blocks startup:
-/// LMU being unreachable must not stop incident management.
-pub fn start(adapter: AdapterName, sink: impl FnMut(LmuEvent) + Send + 'static) {
+/// Starts the adapter on a background thread, running until `stop` is set (the steward
+/// switched source). It never blocks startup: LMU being unreachable must not stop
+/// incident management.
+pub fn start(adapter: AdapterName, stop: Arc<AtomicBool>, sink: impl FnMut(LmuEvent) + Send + 'static) {
     std::thread::Builder::new()
         .name(format!("lmu-{adapter:?}").to_lowercase())
         .spawn(move || match adapter {
-            AdapterName::Mock => mock::run(sink),
-            AdapterName::Rest => rest::run(sink),
+            AdapterName::Mock => mock::run(&stop, sink),
+            AdapterName::Rest => rest::run(&stop, sink),
         })
         .expect("failed to spawn the LMU adapter thread");
 }

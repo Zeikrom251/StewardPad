@@ -5,7 +5,11 @@ use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
 
+use crate::discord::DiscordSettings;
+use crate::display::DisplayPrefs;
 use crate::domain::Incident;
+use crate::lmu::AdapterName;
+use crate::rulebook::Rulebook;
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -14,11 +18,33 @@ pub struct PersistedConfig {
     pub steward_name: String,
     /// None (or '') = the default archive folder inside the app data dir.
     pub archive_dir: Option<String>,
+    /// None = the default exports folder inside the app data dir.
+    #[serde(default)]
+    pub export_dir: Option<String>,
+    /// Absent on files written before the source moved into Settings: the simulator.
+    #[serde(default)]
+    pub adapter: AdapterName,
+    /// The league's rule book (Settings), optional.
+    #[serde(default)]
+    pub rulebook: Option<Rulebook>,
+    #[serde(default)]
+    pub display: DisplayPrefs,
+    #[serde(default)]
+    pub discord: DiscordSettings,
 }
 
 impl Default for PersistedConfig {
     fn default() -> Self {
-        Self { lookback_seconds: 10, steward_name: String::new(), archive_dir: None }
+        Self {
+            lookback_seconds: 10,
+            steward_name: String::new(),
+            archive_dir: None,
+            export_dir: None,
+            adapter: AdapterName::Mock,
+            rulebook: None,
+            display: DisplayPrefs::default(),
+            discord: DiscordSettings::default(),
+        }
     }
 }
 
@@ -55,8 +81,13 @@ impl Store {
     }
 
     pub fn from_state(state: PersistedState) -> Self {
+        let mut incidents = state.incidents;
+        // Older files wrote "RACE 00:01:50 — Lap 3"; the app no longer shows em dashes.
+        for incident in &mut incidents {
+            incident.replay_reference = incident.replay_reference.replace(" — Lap ", " · Lap ");
+        }
         Self {
-            incidents: state.incidents,
+            incidents,
             seen_lmu_keys: state.seen_lmu_collision_keys.into_iter().collect(),
             next_sequence_number: state.next_sequence_number,
             config: state.config,

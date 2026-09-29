@@ -15,7 +15,7 @@ fn clamps_event_seconds_to_zero_when_lookback_exceeds_elapsed() {
 #[test]
 fn formats_the_replay_reference_and_reads_its_lap_back() {
     let reference = build_replay_reference(SessionType::Race, 3725.0, 42);
-    assert_eq!(reference, "RACE 01:02:05 — Lap 42");
+    assert_eq!(reference, "RACE 01:02:05 · Lap 42");
     assert_eq!(lap_from_replay_reference(&reference), 42);
     assert_eq!(lap_from_replay_reference("unparseable"), 0);
 }

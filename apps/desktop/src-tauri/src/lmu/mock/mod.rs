@@ -7,6 +7,7 @@ mod rng;
 mod roster;
 mod standings;
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use super::resolver::{resolve_collisions, RawLmuContact};
@@ -31,9 +32,9 @@ struct Simulator {
     rng: Rng,
 }
 
-pub fn run(mut sink: impl FnMut(LmuEvent)) {
+pub fn run(stop: &AtomicBool, mut sink: impl FnMut(LmuEvent)) {
     let mut sim = Simulator::new(Rng::from_clock());
-    loop {
+    while !stop.load(Ordering::Relaxed) {
         std::thread::sleep(TICK);
         sink(LmuEvent::Update(sim.tick()));
     }
@@ -58,7 +59,7 @@ impl Simulator {
         self.generate_contacts();
         let standings = standings::build_standings(&self.cars);
         let collisions = resolve_collisions(&self.raw_contacts, &standings, &mut |name| {
-            eprintln!("[simulator] contact named \"{name}\" is not uniquely resolvable — skipping");
+            eprintln!("[simulator] contact named \"{name}\" is not uniquely resolvable, skipping");
         });
         LmuUpdate { session: self.session(), standings, collisions }
     }

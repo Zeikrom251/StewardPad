@@ -17,6 +17,7 @@ pub(crate) struct Draft {
     pub kind: IncidentType,
     pub logged_by: String,
     pub source: IncidentSource,
+    pub lmu_key: Option<String>,
     pub fields: IncidentFields,
 }
 
@@ -41,6 +42,7 @@ impl Core {
             kind: IncidentType::Other,
             logged_by: input.logged_by.unwrap_or_else(|| self.store.config.steward_name.clone()),
             source: IncidentSource::Steward,
+            lmu_key: None,
             fields: IncidentFields::default(),
         };
         Ok(self.insert(draft))
@@ -57,6 +59,7 @@ impl Core {
             kind: fields.kind.unwrap_or(IncidentType::Other),
             logged_by: fields.logged_by.clone().unwrap_or_else(|| self.store.config.steward_name.clone()),
             source: IncidentSource::Steward,
+            lmu_key: None,
             fields,
         };
         Ok(self.insert(draft))
@@ -66,9 +69,21 @@ impl Core {
     /// lookbackApplied — that records what happened at the keypress (§7.3).
     pub fn update(&mut self, id: &str, fields: IncidentFields) -> AppResult<Incident> {
         fields.validate()?;
-        let mut incident = self.get(id)?;
+        let before = self.get(id)?;
+        let mut incident = before.clone();
         let previous_lap = lap_from_replay_reference(&incident.replay_reference);
-        apply_fields(&mut incident, fields);
+        fields.apply_to(&mut incident);
+        // reviewedBy is never typed: it names whoever last changed the incident. A save that
+        // changes nothing (an inspector opening, a merged incident being read) stamps nobody,
+        // so another steward's review survives someone else looking at it.
+        incident.reviewed_by = before.reviewed_by.clone();
+        if incident == before {
+            return Ok(before);
+        }
+        let steward = self.store.config.steward_name.trim();
+        if !steward.is_empty() {
+            incident.reviewed_by = Some(steward.to_string());
+        }
         let lap = incident.cars.first().and_then(|c| c.lap_at_incident).unwrap_or(previous_lap);
         incident.replay_reference = build_replay_reference(self.session.session_type, incident.event_seconds, lap);
         incident.updated_at = UtcTime::now().iso();
@@ -84,7 +99,7 @@ impl Core {
         let incidents = input.incident_ids.iter().map(|id| self.get(id)).collect::<AppResult<Vec<_>>>()?;
         if let Some(child) = incidents.iter().find(|i| i.merged_into_id.is_some()) {
             return Err(AppError::invalid(format!(
-                "Incident #{} is already merged into another incident — to expand a merge group, \
+                "Incident #{} is already merged into another incident. To expand a merge group, \
                  include the primary incident and the new incidents together",
                 child.sequence_number
             )));
@@ -129,6 +144,7 @@ impl Core {
             source: draft.source,
             merged_into_id: None,
             merged_from_ids: Vec::new(),
+            lmu_key: draft.lmu_key.clone(),
             event_seconds: draft.event_seconds,
             logged_at_seconds: draft.logged_at_seconds,
             lookback_applied: (draft.logged_at_seconds - draft.event_seconds).max(0.0),
@@ -141,6 +157,7 @@ impl Core {
             steward_notes: fields.steward_notes.clone().unwrap_or_default(),
             decision: fields.decision.clone().unwrap_or_default(),
             penalty: fields.penalty.clone().flatten(),
+            rules: fields.rules.clone().unwrap_or_default(),
             logged_by: draft.logged_by.clone(),
             reviewed_by: fields.reviewed_by.clone().flatten(),
             created_at: now.clone(),
@@ -154,39 +171,6 @@ impl Core {
     /// No involved car → the race leader's lap.
     fn leader_lap(&self) -> i64 {
         self.standings.first().map_or(0, |s| s.laps_completed)
-    }
-}
-
-fn apply_fields(incident: &mut Incident, fields: IncidentFields) {
-    if let Some(v) = fields.event_seconds {
-        incident.event_seconds = v;
-    }
-    if let Some(v) = fields.cars {
-        incident.cars = v;
-    }
-    if let Some(v) = fields.kind {
-        incident.kind = v;
-    }
-    if let Some(v) = fields.status {
-        incident.status = v;
-    }
-    if let Some(v) = fields.summary {
-        incident.summary = v;
-    }
-    if let Some(v) = fields.steward_notes {
-        incident.steward_notes = v;
-    }
-    if let Some(v) = fields.decision {
-        incident.decision = v;
-    }
-    if let Some(v) = fields.penalty {
-        incident.penalty = v;
-    }
-    if let Some(v) = fields.logged_by {
-        incident.logged_by = v;
-    }
-    if let Some(v) = fields.reviewed_by {
-        incident.reviewed_by = v;
     }
 }
 

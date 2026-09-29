@@ -6,6 +6,7 @@ mod connection_log;
 mod mapper;
 mod parse;
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use serde_json::Value;
@@ -32,11 +33,11 @@ struct RestAdapter {
     last_standings: Vec<StandingEntry>,
 }
 
-pub fn run(mut sink: impl FnMut(LmuEvent)) {
+pub fn run(stop: &AtomicBool, mut sink: impl FnMut(LmuEvent)) {
     let base_url = std::env::var("LMU_BASE_URL").unwrap_or_else(|_| "http://localhost:6397".to_string());
     let agent: ureq::Agent = ureq::Agent::config_builder().timeout_global(Some(FETCH_TIMEOUT)).build().into();
     let mut adapter = RestAdapter { log: ConnectionLog::new(&base_url), base_url, agent, last_standings: Vec::new() };
-    loop {
+    while !stop.load(Ordering::Relaxed) {
         match adapter.poll_once() {
             Some(update) => sink(LmuEvent::Update(update)),
             None if adapter.log.note_disconnected() => sink(LmuEvent::Disconnected),

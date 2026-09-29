@@ -1,17 +1,19 @@
 //! Tauri commands — the old REST endpoints. Each one parses its typed input, calls one
 //! core operation and pushes the resulting change to the UI. No domain logic here.
 
+use std::path::PathBuf;
+
 use serde::Serialize;
 use tauri::{AppHandle, State};
 
 use crate::app::{emit, emit_incidents, AppState};
 use crate::core::{AppConfig, Core};
 use crate::domain::{Incident, SessionInfo, StandingEntry};
-use crate::error::AppResult;
-use crate::export::{build_incident_csv, CsvDelimiter, CsvExport, CsvVariant};
+use crate::error::{AppError, AppResult};
 use crate::incidents::input::{ConfigInput, IncidentFields, MergeInput, QuickLogInput};
-use crate::incidents::rules::is_active;
-use crate::text::{slugify, UtcTime};
+use crate::lmu::AdapterName;
+use crate::rulebook::{check_rules, edited_rulebook, number_if_outline, read_rulebook, RulebookCheck};
+use crate::share::ImportReport;
 
 /// Everything the UI needs on start — so the window isn't blank until the next tick.
 #[derive(Serialize)]
@@ -65,7 +67,22 @@ pub fn update_incident(
     id: String,
     input: IncidentFields,
 ) -> AppResult<Incident> {
-    mutate(&app, &state, |core| core.update(&id, input))
+    let (before, updated) = mutate(&app, &state, |core| {
+        let before = core.get(&id)?.status;
+        Ok((before, core.update(&id, input)?))
+    })?;
+    // The Announce page posts each status change to Discord; imports and merges don't come
+    // here. The incident travels with the event, so the message never reads a stale list.
+    if before != updated.status {
+        emit(&app, "announcement:due", &AnnouncementDue { incident: updated.clone() });
+    }
+    Ok(updated)
+}
+
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct AnnouncementDue {
+    incident: Incident,
 }
 
 #[tauri::command]
@@ -88,6 +105,52 @@ pub fn archive_session(app: AppHandle, state: State<AppState>) -> AppResult<()> 
     })
 }
 
+/// Settings → Rule book: reads a text/Markdown file; its numbered lines become the rules.
+#[tauri::command]
+pub fn import_rulebook(app: AppHandle, state: State<AppState>, path: PathBuf) -> AppResult<AppConfig> {
+    let rulebook = read_rulebook(&path)?;
+    let config = state.lock().set_rulebook(Some(rulebook));
+    emit(&app, "config:update", &config);
+    Ok(config)
+}
+
+/// Rules page → Edit, while typing: every line that breaks the structure.
+#[tauri::command]
+pub fn check_rulebook(text: String) -> RulebookCheck {
+    check_rules(&text)
+}
+
+/// Rules page → Edit → "Number it": full rule numbers for a pasted Google Docs / Word list.
+#[tauri::command]
+pub fn number_rulebook(text: String) -> String {
+    number_if_outline(&text)
+}
+
+/// Rules page → Edit → Save: the edited Markdown replaces the book if it has no problem.
+#[tauri::command]
+pub fn save_rulebook(app: AppHandle, state: State<AppState>, text: String) -> AppResult<AppConfig> {
+    let mut core = state.lock();
+    let name =
+        core.config().rulebook.map(|book| book.name).ok_or_else(|| AppError::invalid("Import a rule book first"))?;
+    let config = core.set_rulebook(Some(edited_rulebook(name, text)?));
+    drop(core);
+    emit(&app, "config:update", &config);
+    Ok(config)
+}
+
+#[tauri::command]
+pub fn remove_rulebook(app: AppHandle, state: State<AppState>) -> AppConfig {
+    let config = state.lock().set_rulebook(None);
+    emit(&app, "config:update", &config);
+    config
+}
+
+/// Settings → Data source. Takes effect at once and is saved with the session.
+#[tauri::command]
+pub fn set_adapter(app: AppHandle, state: State<AppState>, adapter: AdapterName) -> AppConfig {
+    state.switch_adapter(&app, adapter)
+}
+
 #[tauri::command]
 pub fn update_config(app: AppHandle, state: State<AppState>, input: ConfigInput) -> AppResult<AppConfig> {
     let config = state.lock().update_config(input)?;
@@ -95,11 +158,8 @@ pub fn update_config(app: AppHandle, state: State<AppState>, input: ConfigInput)
     Ok(config)
 }
 
+/// Merges other stewards' session files into this session; the UI shows the report.
 #[tauri::command]
-pub fn export_csv(state: State<AppState>, variant: CsvVariant, delimiter: CsvDelimiter) -> CsvExport {
-    let core = state.lock();
-    let active: Vec<Incident> = core.store.all().iter().filter(|i| is_active(i)).cloned().collect();
-    let csv = build_incident_csv(&active, core.store.all(), variant, delimiter.as_char());
-    let filename = format!("lmu-incidents-{}-{}.csv", slugify(&core.session.track_name), UtcTime::now().date());
-    CsvExport { csv, filename }
+pub fn import_sessions(app: AppHandle, state: State<AppState>, paths: Vec<PathBuf>) -> AppResult<ImportReport> {
+    mutate(&app, &state, |core| core.import_sessions(&paths))
 }

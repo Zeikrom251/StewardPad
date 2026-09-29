@@ -12,7 +12,7 @@ fn core(name: &str) -> (Core, std::path::PathBuf) {
     let dir = std::env::temp_dir().join(format!("stewardpad-core-{name}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     let (saver, _) = Saver::channel();
-    let mut core = Core::new(Store::empty(), Paths::in_dir(&dir), AdapterName::Mock, saver);
+    let mut core = Core::new(Store::empty(), Paths::in_dir(&dir), saver);
     core.apply_lmu(update("Monza", 120.0, vec![]));
     (core, dir)
 }
@@ -52,7 +52,7 @@ fn quick_log_stamps_the_look_back_and_keeps_both_timestamps() {
     let (mut core, _) = core("quick");
     let incident = core.quick_log(QuickLogInput { slot_ids: vec!["4".into()], logged_by: None }).expect("logs");
     assert_eq!((incident.event_seconds, incident.logged_at_seconds, incident.lookback_applied), (110.0, 120.0, 10.0));
-    assert_eq!(incident.replay_reference, "RACE 00:01:50 — Lap 9");
+    assert_eq!(incident.replay_reference, "RACE 00:01:50 · Lap 9");
     assert_eq!(incident.sequence_number, 1);
 }
 
@@ -63,7 +63,7 @@ fn a_time_nudge_moves_event_seconds_but_never_the_recorded_look_back() {
     let nudged = core.update(&logged.id, fields(json!({ "eventSeconds": 105.0 }))).expect("updates");
     assert_eq!(nudged.event_seconds, 105.0);
     assert_eq!(nudged.lookback_applied, 10.0);
-    assert_eq!(nudged.replay_reference, "RACE 00:01:45 — Lap 9");
+    assert_eq!(nudged.replay_reference, "RACE 00:01:45 · Lap 9");
 }
 
 #[test]
@@ -75,7 +75,9 @@ fn an_update_leaves_absent_fields_alone_and_clears_explicit_nulls() {
     let edited = core.update(&created.id, fields(json!({ "decision": "Warning" }))).expect("updates");
     assert_eq!((edited.summary.as_str(), edited.penalty.is_some()), ("kept", true));
     let cleared = core.update(&created.id, fields(json!({ "penalty": null, "reviewedBy": null }))).expect("updates");
-    assert_eq!((cleared.penalty, cleared.reviewed_by), (None, None));
+    assert_eq!(cleared.penalty, None);
+    // reviewedBy isn't editable: it stays until someone with a name in Settings changes the incident.
+    assert_eq!(cleared.reviewed_by.as_deref(), Some("J"));
 }
 
 #[test]
@@ -131,4 +133,41 @@ fn clearing_keeps_lmu_keys_so_the_cumulative_feed_does_not_resurrect_incidents()
     core.archive("Monza").expect("archives");
     core.apply_lmu(update("Monza", 126.0, vec![off_track(121.5)]));
     assert!(core.list().is_empty());
+}
+
+#[test]
+fn switching_the_data_source_keeps_the_incidents_and_is_saved() {
+    let (mut core, dir) = core("switch");
+    core.quick_log(QuickLogInput::default()).expect("logs");
+    core.use_adapter(AdapterName::Rest);
+    assert!(!core.session.connected && core.standings.is_empty());
+    // The new source reports another track: that is the switch, not a new session to archive.
+    core.apply_lmu(update("Sebring", 5.0, vec![]));
+    assert_eq!(core.list().len(), 1);
+    assert!(!dir.join("archive").exists());
+    assert_eq!(core.snapshot().config.adapter, AdapterName::Rest);
+}
+
+#[test]
+fn treating_an_incident_stamps_the_steward_from_settings_as_reviewer() {
+    let (mut core, _) = core("reviewer");
+    core.store.config.steward_name = "Ryan".into();
+    let logged = core.quick_log(QuickLogInput::default()).expect("logs");
+    assert_eq!(logged.reviewed_by, None);
+    let treated = core.update(&logged.id, fields(json!({ "status": "UNDER_INVESTIGATION" }))).expect("updates");
+    assert_eq!(treated.reviewed_by.as_deref(), Some("Ryan"));
+}
+
+#[test]
+fn a_save_that_changes_nothing_keeps_the_other_stewards_review() {
+    let (mut core, _) = core("viewer");
+    let logged = core.quick_log(QuickLogInput::default()).expect("logs");
+    core.store.config.steward_name = "Nina".into();
+    let reviewed = core.update(&logged.id, fields(json!({ "status": "NO_FURTHER_ACTION" }))).expect("reviews");
+    core.store.config.steward_name = "Ryan".into();
+    // Ryan opens it: the inspector sends back exactly what it received.
+    let viewed =
+        core.update(&logged.id, fields(json!({ "status": "NO_FURTHER_ACTION", "reviewedBy": null }))).expect("saves");
+    assert_eq!(viewed.reviewed_by.as_deref(), Some("Nina"));
+    assert_eq!(viewed.updated_at, reviewed.updated_at);
 }
