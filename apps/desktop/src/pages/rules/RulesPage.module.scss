@@ -1,0 +1,155 @@
+@use 'editor';
+
+.page {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.small {
+  font-size: 12px;
+  min-width: 0;
+}
+
+.search {
+  width: 240px;
+  min-height: 30px;
+  padding: 4px 10px;
+}
+
+// Centred reading column; the page scrolls, not the window.
+.rules {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+  padding: 12px max(24px, calc((100% - 880px) / 2)) 32px;
+}
+
+.rule {
+  --indent: 0px;
+  border-bottom: 1px solid var(--color-border);
+
+  &[data-depth='1'] {
+    --indent: 20px;
+  }
+
+  &[data-depth='2'] {
+    --indent: 40px;
+  }
+
+  &[data-depth='3'] {
+    --indent: 60px;
+  }
+
+  &[data-depth='0'] .title {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+}
+
+.ruleLine {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 8px 9px calc(8px + var(--indent));
+  border-radius: 5px;
+  text-align: left;
+
+  &:not(:disabled):hover {
+    background: var(--color-surface-raised);
+  }
+
+  // Uncited rules are plain text: nothing to open.
+  &:disabled {
+    cursor: text;
+    user-select: text;
+  }
+}
+
+.code {
+  min-width: 48px;
+  flex: none;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.title {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.cited {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 500 12px var(--font-mono);
+  color: var(--color-status-under-investigation);
+}
+
+.chevron {
+  transition: transform 120ms ease;
+
+  [aria-expanded='false'] & {
+    transform: rotate(-90deg);
+  }
+}
+
+.citations {
+  list-style: none;
+  margin: 0 0 10px calc(68px + var(--indent));
+  border-left: 2px solid var(--color-border);
+
+  button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    text-align: left;
+
+    &:hover {
+      background: var(--color-surface-raised);
+    }
+  }
+}
+
+.none,
+.empty {
+  color: var(--color-text-muted);
+}
+
+.none {
+  padding: 24px 0;
+  text-align: center;
+}
+
+.empty {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+
+  svg {
+    color: var(--color-text-faint);
+  }
+
+  b {
+    font: 600 15px var(--font-ui);
+    color: var(--color-text);
+  }
+
+  p {
+    max-width: 440px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}
