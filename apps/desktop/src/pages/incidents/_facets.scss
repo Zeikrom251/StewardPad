@@ -1,0 +1,93 @@
+// ---- facets ----
+.filters {
+  width: 232px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 16px 12px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+.filtersHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 4px;
+
+  h1 {
+    font: 600 18px var(--font-ui);
+  }
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  > span:first-child {
+    padding: 0 8px 6px;
+  }
+}
+
+.option {
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  border-radius: 5px;
+  font: 500 13px var(--font-ui);
+  color: var(--color-text-muted);
+  text-align: left;
+
+  > span:last-child {
+    margin-left: auto;
+  }
+
+  &:hover {
+    color: var(--color-text);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--color-surface-raised);
+    color: var(--color-text);
+    font-weight: 600;
+  }
+}
+
+.toned {
+  color: var(--tone);
+}
+
+.spacer {
+  flex: 1 1 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.clear {
+  color: var(--color-status-penalty-applied);
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--color-status-penalty-applied) 40%, transparent);
+  font-size: 12px;
+}
+
+.confirmRow {
+  display: flex;
+  gap: 6px;
+}

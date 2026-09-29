@@ -1,0 +1,160 @@
+@use 'cells';
+
+// Timing tower. One grid template shared by the header and every row keeps columns aligned.
+.standings {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.small {
+  font-size: 12px;
+}
+
+.swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--tone);
+}
+
+.search {
+  width: 240px;
+  background: var(--color-surface);
+
+  svg {
+    color: var(--color-text-faint);
+  }
+}
+
+.table {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.head,
+.row {
+  // grid-template-columns comes from standingsColumns.tsx: columns can be hidden.
+  display: grid;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+
+  > * {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    padding: 0 5px;
+    min-width: 0;
+  }
+}
+
+.head {
+  height: 30px;
+  flex: none;
+  background: var(--color-surface);
+  font: 600 11.5px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+
+  > [data-col='driver'] {
+    padding: 0 8px;
+  }
+}
+
+.row {
+  height: 36px;
+  font: 400 12px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+
+  &:nth-child(even) {
+    background: color-mix(in srgb, var(--color-text) 2.5%, transparent);
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  }
+
+  &[data-state] {
+    background: var(--color-surface-raised);
+  }
+
+  &[data-state='selected'] {
+    --bar: var(--color-accent);
+
+    b {
+      font-weight: 600;
+    }
+  }
+
+  &[data-state='marked'] {
+    --bar: var(--color-text-muted);
+  }
+
+  // In the pit lane the car isn't racing: dim the row, keep it readable.
+  &[data-pit] {
+    color: var(--color-text-muted);
+  }
+
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+}
+
+// Cells are wrapped (one <span> per column); the colour bar and driver fill their wrapper.
+.row > [data-col='bar'] {
+  align-self: stretch;
+  padding: 0;
+}
+
+.row > [data-col='driver'] {
+  padding: 0;
+}
+
+.bar {
+  flex: 1;
+  align-self: stretch;
+  background: var(--bar, transparent);
+}
+
+.pos {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.faint {
+  color: var(--color-text-faint);
+}
+
+.left {
+  justify-content: flex-start !important;
+}
+
+.center {
+  justify-content: center !important;
+}
+
+.plateCell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+:global([data-density='comfortable']) .row {
+  height: 44px;
+  font-size: 13px;
+}

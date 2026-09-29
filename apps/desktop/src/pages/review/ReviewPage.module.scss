@@ -1,0 +1,82 @@
+.page {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.small {
+  font-size: 12px;
+}
+
+.body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+}
+
+.queue {
+  width: 300px;
+  flex: none;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+.editor {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 10px 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+
+  h2 {
+    font: 600 16px var(--font-ui);
+  }
+}
+
+// Both columns scroll together: the case and the verdict stay side by side.
+.columns {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  & + & {
+    border-left: 1px solid var(--color-border);
+  }
+}
+
+.empty {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-text-muted);
+
+  svg {
+    color: var(--color-status-no-further-action);
+  }
+
+  b {
+    font: 600 15px var(--font-ui);
+    color: var(--color-text);
+  }
+}
