@@ -1,5 +1,6 @@
-# Every pull request (and main after a merge): lint, test and build everything, including the
-# Windows desktop app. A red check means the work is not ready to merge.
+# Every pull request (and main after a merge): lint, test and build the website, then lint and
+# test the desktop app on Windows. The installer is built only on release (release.yml).
+# A red check means the work is not ready to merge.
 name: CI
 
 on:
@@ -32,7 +33,7 @@ jobs:
         run: pnpm build
 
   desktop:
-    name: Test and build the desktop app (Windows)
+    name: Test the desktop app (Windows)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -58,5 +59,3 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - name: Rust tests
         run: pnpm desktop:test
-      - name: Build StewardPad.exe
-        run: pnpm --filter @stewardpad/desktop tauri build --no-bundle

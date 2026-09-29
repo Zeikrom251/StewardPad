@@ -213,8 +213,7 @@ a collision`, `Article 12: Track limits` — becomes a rule. The inspector then 
 ### Checks and releases (GitHub Actions)
 
 **Every pull request** runs `.github/workflows/ci.yml`: lint, tests and the website build on
-Linux, then clippy, the Rust tests and a full `StewardPad.exe` build on Windows. Merge only
-when both checks are green.
+Linux, then clippy and the Rust tests on Windows. Merge only when both checks are green.
 
 **Publishing a release** runs `.github/workflows/release.yml`, which builds the Windows
 installer and attaches it to the release. To ship version 0.2.0:
