@@ -62,3 +62,18 @@
   height: 16px;
   background: var(--color-border);
 }
+
+.update {
+  composes: item;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

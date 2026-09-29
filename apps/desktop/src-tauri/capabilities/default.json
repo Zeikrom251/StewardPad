@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Main window: the custom title bar drives the window; native dialogs pick where exports are saved and the archive folder; Settings → Text size zooms the webview.",
+  "description": "Main window: the custom title bar drives the window; native dialogs pick where exports are saved and the archive folder; Settings \u2192 Text size zooms the webview; the updater checks for, downloads and installs a new release.",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -11,6 +11,7 @@
     "core:window:allow-close",
     "core:webview:allow-set-webview-zoom",
     "dialog:allow-save",
-    "dialog:allow-open"
+    "dialog:allow-open",
+    "updater:default"
   ]
 }

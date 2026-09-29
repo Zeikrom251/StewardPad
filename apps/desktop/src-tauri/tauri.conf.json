@@ -35,5 +35,16 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNBRjg0MkJDQjMyQzFEMkYKUldRdkhTeXp2RUw0T214QVUxemtXQzZiVUI1cThKZzM4UWJ5WndMaFYySE9sNWFqSEtjdDVBMHIK",
+      "endpoints": [
+        "https://github.com/Zeikrom251/StewardPad/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

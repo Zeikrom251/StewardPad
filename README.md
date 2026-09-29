@@ -226,6 +226,23 @@ installer and attaches it to the release. To ship version 0.2.0:
 The workflow stops if the tag does not match the app version. The installer is built only
 for a published release, never for a pull request.
 
+**In-app updates.** A release also publishes a signed update package and a `latest.json`
+beside the installer. Each time StewardPad starts it reads
+`releases/latest/download/latest.json`; when the version there is newer, the status bar says
+**Update x.y.z available** and Settings → Updates shows the release notes. Nothing installs by
+itself: the steward clicks **Install**, the app downloads the update, saves the session, then
+runs the installer, which reopens StewardPad when it is done. The notes shown are the GitHub
+release's description. Offline, the check simply waits for the next start (or **Check for
+updates**).
+
+The update is trusted only if it is signed with the key whose public half is in
+`tauri.conf.json` (`plugins.updater.pubkey`). One-time setup: add the private key as the
+repository secret `TAURI_SIGNING_PRIVATE_KEY` (Settings → Secrets and variables → Actions),
+plus `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` if the key has one. Keep a backup of the key: without
+it, installed copies can no longer update. A new key pair (`pnpm --filter @stewardpad/desktop
+tauri signer generate`) means a new `pubkey`, and copies already installed must be updated
+by hand once.
+
 ### Layout
 
 | Path              | Package               | What it is                                    |
@@ -260,6 +277,7 @@ Every dependency is justified or it does not go in. Versions are pinned exactly.
 | `uuid` (crate)                                                           | Random v4 incident ids, same format as `crypto.randomUUID()`.                                                                            |
 | `ureq` (crate)                                                           | Polls LMU's REST API over plain `http://localhost` (TLS features off) — a small blocking client on the adapter's own thread.             |
 | `tauri-plugin-dialog` (crate), `@tauri-apps/plugin-dialog`               | Native Windows Save / folder dialogs for the CSV exports and the archive folder.                                                         |
+| `tauri-plugin-updater` (crate), `@tauri-apps/plugin-updater`             | In-app updates: finds a newer GitHub release, checks its signature, downloads it and runs the installer.                                 |
 
 Deliberately **not** used: no axios (native `fetch`), no uuid
 (`crypto.randomUUID()`), no CSV library (hand-written generator — the Excel

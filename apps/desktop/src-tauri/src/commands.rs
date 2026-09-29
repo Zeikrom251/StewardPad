@@ -105,6 +105,13 @@ pub fn archive_session(app: AppHandle, state: State<AppState>) -> AppResult<()> 
     })
 }
 
+/// Writes the session to disk now, skipping the debounce: the updater calls it right before
+/// the installer closes the app, so the last edits are not lost.
+#[tauri::command]
+pub fn flush_session(state: State<AppState>) -> AppResult<()> {
+    state.lock().flush()
+}
+
 /// Settings → Rule book: reads a text/Markdown file; its numbered lines become the rules.
 #[tauri::command]
 pub fn import_rulebook(app: AppHandle, state: State<AppState>, path: PathBuf) -> AppResult<AppConfig> {

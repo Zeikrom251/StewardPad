@@ -1,0 +1,17 @@
+.action {
+  display: flex;
+}
+
+/* The release notes, as written on the GitHub release. */
+.notes {
+  max-height: 180px;
+  overflow: auto;
+  padding: 8px 10px;
+  border-radius: 5px;
+  background: var(--color-ground);
+  border: 1px solid var(--color-border);
+  white-space: pre-line;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}

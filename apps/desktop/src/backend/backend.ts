@@ -68,6 +68,8 @@ export const backend = {
   mergeIncidents: (input: MergeIncidentsInput) => invoke<Incident>('merge_incidents', { input }),
   /** Archives a copy, then clears the list — also the "Clear all" action. */
   archiveSession: () => invoke<void>('archive_session'),
+  /** Writes the session now, skipping the debounce (before the updater closes the app). */
+  flushSession: () => invoke<void>('flush_session'),
   updateConfig: (input: UpdateConfigInput) => invoke<AppConfig>('update_config', { input }),
   /** Stops the running data source and starts the other one; saved with the session. */
   setAdapter: (adapter: AdapterName) => invoke<AppConfig>('set_adapter', { adapter }),
