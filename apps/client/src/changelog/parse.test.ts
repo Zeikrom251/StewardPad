@@ -38,6 +38,24 @@ test('sorts versions as numbers, newest first', () => {
   )
 })
 
+test('puts a pre-release before the release it leads to', () => {
+  const versions = ['0.1.0-alpha.2', '0.1.0', '0.1.0-alpha.10', '0.1.0-beta.1', '0.1.0-alpha.1']
+  assert.deepEqual(
+    versions
+      .map(entry)
+      .sort(newestFirst)
+      .map((e) => e.version),
+    ['0.1.0', '0.1.0-beta.1', '0.1.0-alpha.10', '0.1.0-alpha.2', '0.1.0-alpha.1'],
+  )
+})
+
+test('accepts the tag’s leading "v" and drops it', () => {
+  const raw = '---\nversion: v0.1.0-alpha.1\ndate: 2026-09-29\n---\n'
+  assert.equal(parseEntry('changelog/v0.1.0-alpha.1.md', raw).version, '0.1.0-alpha.1')
+  assert.ok(isReleaseFile('changelog/v0.1.0-alpha.1.md'))
+  assert.ok(!isReleaseFile('changelog/README.md'))
+})
+
 test('every release file in the changelog folder is valid', () => {
   const dir = join(import.meta.dirname, '../../../../changelog')
   const files = readdirSync(dir).filter(isReleaseFile)
