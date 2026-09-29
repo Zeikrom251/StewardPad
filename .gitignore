@@ -159,3 +159,6 @@ scripts/output/
 # Tauri — Rust build output and generated schemas
 apps/desktop/src-tauri/target/
 apps/desktop/src-tauri/gen/
+
+# /brag launch-video output (render, poster, Hyperframes project)
+brag-output/
