@@ -1,0 +1,175 @@
+@use 'sections';
+@use 'rules';
+
+.inspector {
+  width: 440px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 10px 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  h2 {
+    font: 600 16px var(--font-ui);
+  }
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hint {
+  font-size: 11.5px;
+  color: var(--color-text-faint);
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stepper {
+  display: flex;
+  gap: 4px;
+
+  > button {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 0 6px;
+    border-radius: 5px;
+    border: 1px solid var(--color-border);
+    font: 600 11px var(--font-ui);
+    color: var(--color-text-muted);
+
+    svg {
+      color: var(--color-text-faint);
+    }
+
+    &:hover {
+      border-color: color-mix(in srgb, var(--tone) 55%, transparent);
+    }
+
+    &[aria-checked='true'] {
+      border-color: color-mix(in srgb, var(--tone) 55%, transparent);
+      background: color-mix(in srgb, var(--tone) 14%, transparent);
+      color: var(--tone);
+
+      svg {
+        color: var(--tone);
+      }
+    }
+  }
+}
+
+.body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 22px;
+}
+
+// Internal-only surface: faint hatching reads as "not for publication" at a glance.
+.private {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-text) 1.8%, transparent) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.saved {
+  color: var(--color-status-no-further-action);
+}
+
+// ---- folding (Collapsible.tsx) ----
+.fold {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-left: -4px;
+  padding: 2px 4px;
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--color-surface-raised);
+  }
+}
+
+.chevron {
+  color: var(--color-text-faint);
+  transition: transform 120ms ease;
+
+  [data-folded] & {
+    transform: rotate(-90deg);
+  }
+}
+
+.summary {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--color-text-faint);
+}
+
+.section[data-folded] {
+  padding-bottom: 10px;
+}
+
+// Comfortable density: more air between sections.
+:global([data-density='comfortable']) .section {
+  gap: 14px;
+  padding: 18px 16px;
+}

@@ -1,0 +1,39 @@
+// Rules broken: picked rules as rows; choosing them happens in RulePickerModal.
+.rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 4px 6px 10px;
+  border-radius: 5px;
+  background: var(--color-ground);
+  border: 1px solid var(--color-border);
+  font-size: 12.5px;
+  line-height: 1.45;
+
+  // Numbers line up with the first line of a title that wraps.
+  > span:first-child {
+    min-width: 56px;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  > button {
+    margin-top: -3px;
+  }
+}
+
+// Opens the rule picker (RulePickerModal): the whole book, full titles, multi-select.
+.pickRules {
+  justify-content: flex-start;
+  border-style: dashed;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.noRulebook button {
+  color: var(--color-accent);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

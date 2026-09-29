@@ -1,0 +1,42 @@
+// A rule inside a PickerDialog row: number, full title, indented by level.
+.rule {
+  --indent: 0px;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-left: var(--indent);
+
+  &[data-depth='1'] {
+    --indent: 18px;
+  }
+
+  &[data-depth='2'] {
+    --indent: 36px;
+  }
+
+  &[data-depth='3'] {
+    --indent: 54px;
+  }
+
+  &[data-depth='0'] .title {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+}
+
+.code {
+  min-width: 64px;
+  flex: none;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+// Full titles wrap: a rule is read before it is cited.
+.title {
+  flex: 1 1 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
