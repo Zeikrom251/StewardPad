@@ -8,6 +8,7 @@ import styles from './Layout.module.scss'
 const LINKS: Array<[string, string]> = [
   ['/#features', 'Features'],
   ['/docs', 'Documentation'],
+  ['/changelog', 'Changelog'],
   ['/#faq', 'FAQ'],
 ]
 

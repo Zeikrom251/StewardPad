@@ -27,9 +27,9 @@ function DownloadCard() {
         <Button to={RELEASES_URL} kind="primary" icon="download" large>
           Download the installer
         </Button>
-        <a className={styles.notes} href={RELEASES_URL} target="_blank" rel="noreferrer">
-          Release notes and older versions
-        </a>
+        <Link className={styles.notes} to="/changelog">
+          What’s new in {APP_VERSION}
+        </Link>
       </div>
     </div>
   )

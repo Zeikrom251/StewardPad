@@ -11,7 +11,8 @@ const COLUMNS: Array<[string, Item[]]> = [
     [
       ['/#features', 'Features'],
       ['/download', 'Download'],
-      [RELEASES_URL, 'Release notes'],
+      ['/changelog', 'Changelog'],
+      [RELEASES_URL, 'All releases'],
     ],
   ],
   [
