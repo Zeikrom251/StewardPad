@@ -17,7 +17,7 @@ function status(state: UpdateState): string {
     case 'offline':
       return 'Could not reach GitHub. Check the connection and try again.'
     case 'available':
-      return `Version ${state.update.version} is out. Your session is saved first, then StewardPad closes for a few seconds while it installs. Best done between sessions.`
+      return `Version ${state.update.version} is out. Your session is saved first, then StewardPad closes for a few seconds while it installs and reopens by itself. Best done between sessions.`
     case 'downloading':
       return `Downloading version ${state.update.version}${state.percent === null ? '…' : ` · ${state.percent}%`}`
     case 'installing':
@@ -31,7 +31,7 @@ function Action() {
     return (
       <button type="button" className={cx(ui.btn, ui.primary)} onClick={install}>
         <Icon name="download" size={14} />
-        Install {state.update.version}
+        Install {state.update.version} and restart
       </button>
     )
   const busy =

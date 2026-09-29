@@ -231,7 +231,8 @@ beside the installer. Each time StewardPad starts it reads
 `releases/latest/download/latest.json`; when the version there is newer, the status bar says
 **Update x.y.z available** and Settings → Updates shows the release notes. Nothing installs by
 itself: the steward clicks **Install**, the app downloads the update, saves the session, then
-runs the installer. Offline, the check simply waits for the next start (or **Check for
+runs the installer, which reopens StewardPad when it is done. The notes shown are the GitHub
+release's description. Offline, the check simply waits for the next start (or **Check for
 updates**).
 
 The update is trusted only if it is signed with the key whose public half is in
