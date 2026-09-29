@@ -1,11 +1,14 @@
-//! CSV export (prompt §7.7) — replaces GET /api/export/csv.
+//! Exports: the CSVs (prompt §7.7; drivers, full log, penalty sheet) and the results JSON.
 
 mod csv;
 mod incident_csv;
+mod penalty_csv;
+mod results_json;
 
 use serde::{Deserialize, Serialize};
 
 pub use incident_csv::{build_incident_csv, CsvVariant};
+pub use results_json::build_results;
 
 #[derive(Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "lowercase")]

@@ -1,21 +1,25 @@
-//! Incident list → CSV rows. The `drivers` variant never contains stewardNotes (prompt §7.7).
+//! Incident list → CSV rows. stewardNotes are in neither file: they're for the stewards
+//! only and never leave the app (shared session files aside). The investigation is public.
 
 use std::collections::HashMap;
 
 use serde::Deserialize;
 
 use super::csv::build_csv;
-use crate::domain::{wire_name, Incident};
-use crate::text::{format_hms, js_number};
+use super::penalty_csv::{penalty_rows, PENALTY_HEADER};
+use crate::domain::{wire_name, Incident, InvolvedRole};
+use crate::text::{decode_entities, format_hms, js_number};
 
 #[derive(Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum CsvVariant {
     Full,
     Drivers,
+    /// One row per penalised car (penalty_csv.rs): what the race results get corrected by.
+    Penalties,
 }
 
-const FULL_HEADER: [&str; 22] = [
+const FULL_HEADER: [&str; 24] = [
     "#",
     "Source",
     "Session Time",
@@ -26,10 +30,12 @@ const FULL_HEADER: [&str; 22] = [
     "Cars",
     "Car Class",
     "Drivers",
+    "Caused By",
+    "Affected",
     "Type",
+    "Rules",
     "Status",
-    "Summary",
-    "Steward Notes",
+    "Investigation",
     "Decision",
     "Penalty",
     "Logged By",
@@ -41,24 +47,32 @@ const FULL_HEADER: [&str; 22] = [
     "Merged From",
 ];
 
-// Car Class travels to the drivers file too, unlike stewardNotes: it is what lets a driver
-// tell their own "#77" from the other class's "#77" — not internal deliberation.
-const DRIVERS_HEADER: [&str; 10] =
-    ["#", "Session Time", "Lap", "Cars", "Car Class", "Drivers", "Type", "Decision", "Penalty", "Status"];
+// Car Class lets a driver tell their own "#77" from the other class's "#77". The
+// investigation and rules travel too: they're the published basis of the decision.
+const DRIVERS_HEADER: [&str; 14] = [
+    "#",
+    "Session Time",
+    "Lap",
+    "Cars",
+    "Car Class",
+    "Drivers",
+    "Caused By",
+    "Affected",
+    "Type",
+    "Rules",
+    "Investigation",
+    "Decision",
+    "Penalty",
+    "Status",
+];
 
 /// `active` is already filtered to non-merged rows; `all` resolves "Merged From" ids to #numbers.
 pub fn build_incident_csv(active: &[Incident], all: &[Incident], variant: CsvVariant, delimiter: char) -> String {
     let seq_by_id: HashMap<&str, u32> = all.iter().map(|i| (i.id.as_str(), i.sequence_number)).collect();
-    let rows: Vec<Vec<String>> = active
-        .iter()
-        .map(|incident| match variant {
-            CsvVariant::Full => full_row(incident, &seq_by_id),
-            CsvVariant::Drivers => drivers_row(incident),
-        })
-        .collect();
-    let header: &[&str] = match variant {
-        CsvVariant::Full => &FULL_HEADER,
-        CsvVariant::Drivers => &DRIVERS_HEADER,
+    let (header, rows): (&[&str], Vec<Vec<String>>) = match variant {
+        CsvVariant::Full => (&FULL_HEADER, active.iter().map(|i| full_row(i, &seq_by_id)).collect()),
+        CsvVariant::Drivers => (&DRIVERS_HEADER, active.iter().map(drivers_row).collect()),
+        CsvVariant::Penalties => (&PENALTY_HEADER, penalty_rows(active)),
     };
     build_csv(header, &rows, delimiter)
 }
@@ -73,7 +87,18 @@ fn penalty_field(incident: &Incident) -> String {
     format!("{}{seconds}", wire_name(&penalty.kind))
 }
 
-fn lap_field(incident: &Incident) -> String {
+/// "#38 T. Lindqvist, #85 K. Sato": the cars the stewards gave `role`.
+fn cars_with_role(incident: &Incident, role: InvolvedRole) -> String {
+    let cars = incident.cars.iter().filter(|c| c.role == role);
+    cars.map(|c| format!("#{} {}", c.car_number, c.driver_name)).collect::<Vec<_>>().join(", ")
+}
+
+/// "3.2 Causing a collision, 4.1 Blocking"
+pub(super) fn rules_field(incident: &Incident) -> String {
+    incident.rules.iter().map(|r| format!("{} {}", r.code, r.title)).collect::<Vec<_>>().join(", ")
+}
+
+pub(super) fn lap_field(incident: &Incident) -> String {
     incident.cars.first().and_then(|c| c.lap_at_incident).map(|lap| lap.to_string()).unwrap_or_default()
 }
 
@@ -98,11 +123,13 @@ fn full_row(i: &Incident, seq_by_id: &HashMap<&str, u32>) -> Vec<String> {
         join_cars(i, |c| &c.car_number),
         join_cars(i, |c| &c.car_class),
         join_cars(i, |c| &c.driver_name),
+        cars_with_role(i, InvolvedRole::Caused),
+        cars_with_role(i, InvolvedRole::Affected),
         wire_name(&i.kind),
+        rules_field(i),
         wire_name(&i.status),
-        i.summary.clone(),
-        i.steward_notes.clone(),
-        i.decision.clone(),
+        decode_entities(&i.summary),
+        decode_entities(&i.decision),
         penalty_field(i),
         i.logged_by.clone(),
         i.reviewed_by.clone().unwrap_or_default(),
@@ -121,8 +148,12 @@ fn drivers_row(i: &Incident) -> Vec<String> {
         join_cars(i, |c| &c.car_number),
         join_cars(i, |c| &c.car_class),
         join_cars(i, |c| &c.driver_name),
+        cars_with_role(i, InvolvedRole::Caused),
+        cars_with_role(i, InvolvedRole::Affected),
         wire_name(&i.kind),
-        i.decision.clone(),
+        rules_field(i),
+        decode_entities(&i.summary),
+        decode_entities(&i.decision),
         penalty_field(i),
         wire_name(&i.status),
     ]
