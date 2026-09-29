@@ -1,6 +1,7 @@
 # Changelog
 
-One Markdown file per release, named after its version: `0.2.0.md`. The website's
+One Markdown file per release, named after its version: `0.2.0.md`, or `0.2.0-beta.1.md`
+for a pre-release (a leading `v`, as in the git tag, is fine too). The website's
 `/changelog` page lists them, newest first. A file whose name is not a version (like this
 one) is not shown.
 
@@ -22,7 +23,8 @@ title: Faster review, cleaner exports
 - What was wrong, and what happens now.
 ```
 
-- `version` matches the file name and the app version in `tauri.conf.json`.
+- `version` matches the file name and the app version in `tauri.conf.json`. Pre-releases
+  sort before their release: `0.1.0-alpha.1` comes before `0.1.0`.
 - `date` is the release day, `YYYY-MM-DD`.
 - `title` is one short line that sums the release up.
 - Use `###` headings (Added, Changed, Fixed) for the sections.
