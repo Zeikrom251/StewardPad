@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@stewardpad/brand": "workspace:*",
+    "marked": "18.0.14",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
