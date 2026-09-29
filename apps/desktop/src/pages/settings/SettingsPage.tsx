@@ -9,6 +9,7 @@ import { Group, Row, SourceGroup, StorageGroup } from './SettingsGroups'
 import { LookbackSetting } from './LookbackSetting'
 import { RulebookGroup } from './RulebookGroup'
 import { Shortcuts } from './Shortcuts'
+import { UpdatesGroup } from './UpdatesGroup'
 import styles from './SettingsPage.module.scss'
 
 function StewardName({ current }: { current: string }) {
@@ -36,7 +37,7 @@ function StewardName({ current }: { current: string }) {
   )
 }
 
-/** design/06 — steward name, look-back, data source, storage, keyboard. Changes save at once. */
+/** design/06 — steward name, look-back, data source, storage, updates, keyboard. Changes save at once. */
 export function SettingsPage() {
   const live = useLive()
   if (!live) return null
@@ -67,6 +68,7 @@ export function SettingsPage() {
         </Group>
         <SourceGroup live={live} />
         <StorageGroup />
+        <UpdatesGroup />
         <div className={styles.group}>
           <span className={ui.label}>Keyboard</span>
           <Shortcuts />

@@ -3,6 +3,7 @@ import { TitleBar } from './shell/TitleBar'
 import { Rail } from './shell/Rail'
 import { StatusBar } from './shell/StatusBar'
 import { AnnouncerProvider } from './announce/AnnouncerProvider'
+import { UpdaterProvider } from './update/UpdaterProvider'
 import { LiveProvider } from './backend/LiveProvider'
 import { CommandPalette } from './palette/CommandPalette'
 import { IncidentsPage } from './pages/incidents/IncidentsPage'
@@ -55,7 +56,9 @@ export function App() {
     <LiveProvider>
       <WorkspaceProvider>
         <AnnouncerProvider>
-          <Window />
+          <UpdaterProvider>
+            <Window />
+          </UpdaterProvider>
         </AnnouncerProvider>
       </WorkspaceProvider>
     </LiveProvider>

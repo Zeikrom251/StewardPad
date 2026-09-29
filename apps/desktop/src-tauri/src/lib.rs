@@ -32,6 +32,7 @@ pub fn run() {
     avoid_webkit_gpu_freeze();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(app::setup)
         .invoke_handler(tauri::generate_handler![
             commands::get_snapshot,
@@ -42,6 +43,7 @@ pub fn run() {
             commands::delete_incident,
             commands::merge_incidents,
             commands::archive_session,
+            commands::flush_session,
             commands::update_config,
             commands::set_adapter,
             commands::import_rulebook,

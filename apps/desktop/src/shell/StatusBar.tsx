@@ -1,6 +1,7 @@
 import type { Snapshot } from '../backend/backend'
 import { useLive } from '../backend/LiveProvider'
 import { Icon } from '../icons'
+import { useUpdater } from '../update/UpdaterProvider'
 import { Kbd } from '../ui/primitives'
 import { useWorkspace } from '../workspace/Workspace'
 import styles from './StatusBar.module.scss'
@@ -31,6 +32,19 @@ function KeyHints() {
   )
 }
 
+/** A new release: shown until installed; Settings → Updates installs it when the steward chooses. */
+function UpdateItem() {
+  const { state } = useUpdater()
+  const { go } = useWorkspace()
+  if (state.kind !== 'available') return null
+  return (
+    <button type="button" className={styles.update} onClick={() => go('settings')}>
+      <Icon name="download" size={12} />
+      Update {state.update.version} available
+    </button>
+  )
+}
+
 /** Ambient state strip: data source, incident counts, look-back, steward, key hints. */
 export function StatusBar() {
   const live = useLive()
@@ -56,6 +70,7 @@ export function StatusBar() {
         </span>
       )}
       <span className={styles.spacer} />
+      <UpdateItem />
       {live && (
         <>
           <span className={styles.item}>
