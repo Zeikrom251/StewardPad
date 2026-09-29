@@ -212,14 +212,15 @@ a collision`, `Article 12: Track limits` — becomes a rule. The inspector then 
 
 ### Layout
 
-| Path              | Package               | What it is                                    |
-| ----------------- | --------------------- | --------------------------------------------- |
-| `apps/client`     | `@stewardpad/client`  | The website: home, download and docs (React)  |
-| `apps/desktop`    | `@stewardpad/desktop` | Tauri 2 desktop app: React, Vite, SCSS + Rust |
-| `packages/shared` | `@stewardpad/shared`  | Domain types for the desktop app — types only |
-| `packages/brand`  | `@stewardpad/brand`   | Brand tokens, fonts, mark and wordmark        |
-| `scripts/`        | —                     | `discover-lmu.ts`, the Phase 0 probe          |
-| `data/`           | —                     | gitignored session state                      |
+| Path              | Package               | What it is                                                                                                   |
+| ----------------- | --------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `apps/client`     | `@stewardpad/client`  | The website: home, download and docs (React)                                                                 |
+| `apps/desktop`    | `@stewardpad/desktop` | Tauri 2 desktop app: React, Vite, SCSS + Rust                                                                |
+| `packages/shared` | `@stewardpad/shared`  | Domain types for the desktop app — types only                                                                |
+| `packages/brand`  | `@stewardpad/brand`   | Brand tokens, fonts, mark and wordmark                                                                       |
+| `scripts/`        | —                     | `discover-lmu.ts`, the Phase 0 probe                                                                         |
+| `changelog/`      | —                     | Release notes, one Markdown file per version (the website's changelog page; format in `changelog/README.md`) |
+| `data/`           | —                     | gitignored session state                                                                                     |
 
 Shared types are defined once in `packages/shared` and imported by both apps,
 never duplicated. There is no database, no authentication, and no deployment
@@ -240,6 +241,7 @@ Every dependency is justified or it does not go in. Versions are pinned exactly.
 | `@tauri-apps/cli`, `tauri`, `tauri-build` (crates)                       | Desktop app: packages the React UI in a native Windows window and builds the installer, without shipping a whole browser.                |
 | `@tauri-apps/api`                                                        | Lets the desktop UI drive its own window (custom title bar: drag, minimise, maximise, close).                                            |
 | `sass`                                                                   | SCSS modules for the desktop app and the website; the brand tokens are CSS custom properties in `packages/brand`.                        |
+| `marked`                                                                 | Renders the `changelog/*.md` release notes on the website's changelog page; no dependencies of its own.                                  |
 | `serde`, `serde_json` (crates)                                           | The desktop backend's JSON: the session file, LMU responses, and the payloads the UI receives.                                           |
 | `uuid` (crate)                                                           | Random v4 incident ids, same format as `crypto.randomUUID()`.                                                                            |
 | `ureq` (crate)                                                           | Polls LMU's REST API over plain `http://localhost` (TLS features off) — a small blocking client on the adapter's own thread.             |
