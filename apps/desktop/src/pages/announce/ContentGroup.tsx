@@ -79,7 +79,7 @@ export function ContentGroup({
           value={settings.footer}
           onCommit={(footer) => update({ footer })}
           label="Footer"
-          placeholder="VMS Pro Series · Round 4"
+          placeholder="Endurance League · Round 4"
           maxLength={2048}
         />
       </Row>

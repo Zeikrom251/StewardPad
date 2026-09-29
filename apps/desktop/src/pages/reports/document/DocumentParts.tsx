@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Incident } from '@stewardpad/shared'
-import { Mark } from '../../../brand/Mark'
+import { Mark } from '@stewardpad/brand'
 import { formatHms } from '../../../lib/format'
 import { TYPE_LABEL, classLabel } from '../../../lib/labels'
 import { CarNumber } from './DecisionBlock'

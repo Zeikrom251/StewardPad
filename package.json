@@ -7,8 +7,8 @@
     "node": ">=20.11"
   },
   "scripts": {
-    "dev": "pnpm --filter @stewardpad/shared build && pnpm --parallel --filter @stewardpad/server --filter @stewardpad/client dev",
-    "build": "pnpm --filter @stewardpad/shared build && pnpm --filter @stewardpad/server build && pnpm --filter @stewardpad/client build",
+    "dev": "pnpm --filter @stewardpad/client dev",
+    "build": "pnpm --filter @stewardpad/shared build && pnpm --filter @stewardpad/client build",
     "discover": "tsx scripts/discover-lmu.ts",
     "desktop": "pnpm --filter @stewardpad/desktop tauri dev",
     "desktop:build": "pnpm --filter @stewardpad/desktop tauri build",
@@ -24,8 +24,7 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "esbuild",
-      "@tailwindcss/oxide"
+      "esbuild"
     ]
   }
 }

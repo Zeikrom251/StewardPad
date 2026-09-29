@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
+import '@stewardpad/brand/fonts.css'
+import '@stewardpad/brand/tokens.css'
 import './styles/global.scss'
 
 const root = document.getElementById('root')
