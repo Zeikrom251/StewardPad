@@ -1,0 +1,134 @@
+@use 'export-card';
+@use 'team';
+
+.page {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.inner {
+  width: min(1040px, 100% - 48px);
+  padding: 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  h1 {
+    font: 600 24px var(--font-ui);
+    letter-spacing: -0.01em;
+  }
+}
+
+.tiles {
+  display: flex;
+  gap: 12px;
+}
+
+.tile {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+
+  svg {
+    color: var(--tone);
+  }
+
+  b {
+    font: 600 26px/1 var(--font-mono);
+    color: var(--tone);
+  }
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.preview {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-ground);
+}
+
+.previewHead,
+.previewRow {
+  display: grid;
+  grid-template-columns: 28px 50px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.previewHead {
+  height: 26px;
+  background: var(--color-surface);
+  font: 600 11px var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.previewRow {
+  height: 32px;
+  border-top: 1px solid var(--color-border);
+  font-size: 12.5px;
+}
+
+.previewEmpty {
+  font-size: 12.5px;
+  color: var(--color-text-faint);
+}
+
+.danger {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--color-status-penalty-applied) 35%, transparent);
+  background: color-mix(in srgb, var(--color-status-penalty-applied) 7%, transparent);
+  font-size: 12.5px;
+  line-height: 1.45;
+
+  svg {
+    color: var(--color-status-penalty-applied);
+  }
+}
+
+.archive {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+
+  .cardTitle b {
+    font-size: 14px;
+  }
+}

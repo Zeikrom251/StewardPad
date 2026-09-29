@@ -1,0 +1,117 @@
+.exportCard {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardTop {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 18px 14px;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cardIcon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+
+  &[data-public] {
+    color: var(--color-status-no-further-action);
+  }
+}
+
+.cardTitle {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  b {
+    font-size: 15px;
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+}
+
+.includes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  span {
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--color-ground);
+    border: 1px solid var(--color-border);
+    font: 500 11.5px var(--font-ui);
+    color: var(--color-text-muted);
+  }
+
+  [data-excluded] {
+    text-decoration: line-through;
+    color: var(--color-text-faint);
+  }
+}
+
+.cardFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.ok {
+  color: var(--color-status-no-further-action);
+}
+
+// The decisions document leads the page, across both columns.
+.wide {
+  grid-column: 1 / -1;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.docOptions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  input {
+    font-size: 13px;
+  }
+}
+
+.checkOption {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}

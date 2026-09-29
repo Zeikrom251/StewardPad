@@ -1,0 +1,179 @@
+/* One decision as a formal record (DecisionBlock.tsx): a heading line, then labelled rows. */
+.decision {
+  margin: 0 0 20pt;
+  break-inside: avoid;
+}
+
+/* Each incident opens with a shaded band led by its number in a black block. */
+.decision-head {
+  display: flex;
+  align-items: stretch;
+  border-top: 2pt solid var(--ink);
+  background: var(--shade);
+
+  h3 {
+    margin: 0;
+    font-size: 13pt;
+    line-height: 1.25;
+  }
+}
+
+.incident-no {
+  flex: none;
+  min-width: 20mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5pt 8pt;
+  background: var(--ink);
+  color: #fff;
+  font-size: 18pt;
+  font-weight: 700;
+  line-height: 1;
+
+  span {
+    margin-bottom: 3pt;
+    font-size: 6.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+}
+
+.decision-title {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 7pt 10pt;
+}
+
+.when {
+  font-size: 8.5pt;
+  color: var(--ink-2);
+}
+
+/* The verdict in a thin box: dark red, dark green or grey. */
+.outcome {
+  flex: none;
+  align-self: center;
+  margin-right: 10pt;
+  background: #fff;
+  padding: 2pt 6pt;
+  border: 0.75pt solid currentColor;
+  font-size: 7.5pt;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.decision[data-status='PENALTY_APPLIED'] .outcome {
+  color: #9b1c1c;
+}
+
+.decision[data-status='NO_FURTHER_ACTION'] .outcome {
+  color: #1d5e3a;
+}
+
+.record {
+  width: 100%;
+  border-collapse: collapse;
+  border-bottom: 0.75pt solid var(--ink);
+
+  th,
+  td {
+    padding: 5pt 0;
+    border-bottom: 0.5pt solid var(--hair);
+    vertical-align: top;
+    text-align: left;
+  }
+
+  tr:last-child th,
+  tr:last-child td {
+    border-bottom: 0;
+  }
+
+  th {
+    width: 28mm;
+    padding-left: 2pt;
+    padding-right: 8pt;
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+}
+
+.car {
+  display: flex;
+  align-items: baseline;
+  gap: 8pt;
+
+  & + & {
+    margin-top: 3pt;
+  }
+}
+
+.sep {
+  margin: 0 5pt;
+  color: var(--ink-3);
+}
+
+.role {
+  color: var(--ink-2);
+
+  &[data-role='CAUSED'] {
+    font-weight: 700;
+    color: var(--ink);
+  }
+}
+
+/* A long rule title wraps beside its number, not under it. */
+.rule {
+  display: grid;
+  grid-template-columns: 16mm 1fr;
+
+  & + & {
+    margin-top: 2pt;
+  }
+}
+
+.rich {
+  p {
+    margin: 0;
+  }
+
+  p + p,
+  p + ul,
+  p + ol,
+  ul + p,
+  ol + p {
+    margin-top: 4pt;
+  }
+
+  ul,
+  ol {
+    margin: 0;
+    padding-left: 14pt;
+  }
+}
+
+.penalty {
+  display: flex;
+  align-items: baseline;
+  gap: 4pt;
+}
+
+.served {
+  margin-left: auto;
+  font-size: 7.5pt;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9b1c1c;
+
+  &[data-served='true'] {
+    color: #1d5e3a;
+  }
+}

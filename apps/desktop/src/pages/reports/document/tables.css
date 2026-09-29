@@ -1,0 +1,84 @@
+/* The document's ruled tables: event facts, addressees, penalty summary, open incidents. */
+/* A ruled row of labelled facts. */
+.facts {
+  width: 100%;
+  border-collapse: collapse;
+  border-top: 0.75pt solid var(--ink);
+  border-bottom: 0.75pt solid var(--ink);
+
+  td {
+    padding: 5pt 8pt 6pt 0;
+    vertical-align: top;
+    font-weight: 700;
+  }
+
+  td + td {
+    padding-left: 8pt;
+    border-left: 0.5pt solid var(--hair);
+  }
+
+  span {
+    display: block;
+    font-size: 7pt;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+}
+
+.parties {
+  margin-top: 8pt;
+  border-collapse: collapse;
+
+  th {
+    padding-right: 6pt;
+    font-size: 7pt;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    text-align: left;
+  }
+
+  td {
+    padding-right: 28pt;
+    font-weight: 700;
+  }
+}
+
+/* Plain ruled tables: the penalty summary and the open incidents. */
+.grid {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: 3pt 6pt 3pt 0;
+    border-bottom: 0.75pt solid var(--ink);
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    color: var(--ink-2);
+  }
+
+  td {
+    padding: 4pt 6pt 4pt 0;
+    border-bottom: 0.5pt solid var(--hair);
+    vertical-align: middle;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+}
+
+.car-no {
+  display: inline-block;
+  min-width: 22pt;
+  padding: 0 3pt;
+  border: 0.75pt solid var(--ink);
+  font-weight: 700;
+  text-align: center;
+}
