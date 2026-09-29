@@ -1,0 +1,77 @@
+// ---- sharing between stewards ----
+.team {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+
+  .cardTitle b {
+    font-size: 14px;
+  }
+}
+
+.exported {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.importResult {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--color-ground);
+  border: 1px solid var(--color-border);
+  font-size: 12.5px;
+  line-height: 1.5;
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 16px;
+  }
+
+  [data-state='conflict'] {
+    color: var(--color-status-under-investigation);
+  }
+
+  [data-state='error'] {
+    color: var(--color-accent);
+  }
+}
+
+// Whole Reports page accepts the drop (useFileDrop); this zone shows where to aim.
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px;
+  border-radius: 6px;
+  border: 1.5px dashed color-mix(in srgb, var(--color-border-strong) 60%, transparent);
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+
+  b {
+    font-size: 13.5px;
+    color: var(--color-text);
+  }
+
+  &:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  &[data-dragging] {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+    color: var(--color-text);
+
+    svg {
+      color: var(--color-accent);
+    }
+  }
+}

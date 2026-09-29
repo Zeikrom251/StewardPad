@@ -4,6 +4,7 @@ import { Mark } from '../brand/Mark'
 import { Wordmark } from '../brand/Wordmark'
 import { Icon, type IconName } from '../icons'
 import { useLive } from '../backend/LiveProvider'
+import { useWorkspace } from '../workspace/Workspace'
 import { SessionClock, SessionLabel } from './SessionClock'
 import styles from './TitleBar.module.scss'
 
@@ -44,6 +45,7 @@ function WindowButton({
 export function TitleBar() {
   const appWindow = inTauri ? getCurrentWindow() : null
   const simulated = useLive()?.config.adapter === 'mock'
+  const { go } = useWorkspace()
   return (
     <header className={styles.bar} data-tauri-drag-region>
       <div className={styles.side} data-tauri-drag-region>
@@ -55,12 +57,15 @@ export function TitleBar() {
       <SessionClock />
       <div className={styles.sideEnd} data-tauri-drag-region>
         {simulated && (
-          <span
+          <button
+            type="button"
             className={styles.simulator}
-            title="Simulated data — not your live session. Start with LMU_ADAPTER=rest to read the game."
+            title="Simulated data, not your live session. Switch to Le Mans Ultimate in Settings."
+            onClick={() => go('settings')}
           >
+            <Icon name="radio" size={13} strokeWidth={2} />
             Simulator
-          </span>
+          </button>
         )}
         {appWindow && (
           <>

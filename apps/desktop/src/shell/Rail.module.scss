@@ -50,3 +50,17 @@
     background: var(--color-accent);
   }
 }
+
+.badge {
+  position: absolute;
+  left: 36px;
+  top: 6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--color-status-under-investigation);
+  color: var(--color-ground);
+  font: 700 10px/16px var(--font-ui);
+  text-align: center;
+}

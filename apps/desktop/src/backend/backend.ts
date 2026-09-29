@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
+  AdapterName,
   AppConfig,
   CreateIncidentInput,
   CsvDelimiter,
@@ -8,6 +9,7 @@ import type {
   Incident,
   MergeIncidentsInput,
   QuickLogInput,
+  RulebookCheck,
   ServerEvents,
   SessionInfo,
   StandingEntry,
@@ -38,6 +40,23 @@ export interface CsvExport {
   filename: string
 }
 
+/** One imported session file (src-tauri/src/share). `error` = skipped, with the reason. */
+export interface FileReport {
+  file: string
+  exportedBy: string
+  added: number
+  updated: number
+  unchanged: number
+  conflicts: number[]
+  renumbered: Array<{ from: number; to: number }>
+  error: string | null
+}
+
+export interface ImportReport {
+  files: FileReport[]
+  backup: string | null
+}
+
 export const backend = {
   snapshot: () => invoke<Snapshot>('get_snapshot'),
   getIncident: (id: string) => invoke<Incident>('get_incident', { id }),
@@ -50,15 +69,49 @@ export const backend = {
   /** Archives a copy, then clears the list — also the "Clear all" action. */
   archiveSession: () => invoke<void>('archive_session'),
   updateConfig: (input: UpdateConfigInput) => invoke<AppConfig>('update_config', { input }),
+  /** Stops the running data source and starts the other one; saved with the session. */
+  setAdapter: (adapter: AdapterName) => invoke<AppConfig>('set_adapter', { adapter }),
+  /** Reads a text/Markdown rule book; its numbered lines become the rules. */
+  importRulebook: (path: string) => invoke<AppConfig>('import_rulebook', { path }),
+  removeRulebook: () => invoke<AppConfig>('remove_rulebook'),
+  /** Every line of an edited rule book that breaks the structure. */
+  checkRulebook: (text: string) => invoke<RulebookCheck>('check_rulebook', { text }),
+  /** Full rule numbers (3.3.a) for a pasted Google Docs / Word numbered list. */
+  numberRulebook: (text: string) => invoke<string>('number_rulebook', { text }),
+  /** Replaces the book with the edited Markdown; refused while it has a problem. */
+  saveRulebook: (text: string) => invoke<AppConfig>('save_rulebook', { text }),
+  /** Decisions and penalties as versioned JSON (.json only), for a league site or bot. */
+  saveResultsJson: (path: string) => invoke<void>('save_results_json', { path }),
+  /** The decisions document the UI rendered (.html only). */
+  saveHtml: (path: string, content: string) => invoke<void>('save_html', { path, content }),
+  saveMarkdown: (path: string, content: string) => invoke<void>('save_markdown', { path, content }),
   exportCsv: (variant: CsvVariant, delimiter: CsvDelimiter) =>
     invoke<CsvExport>('export_csv', { variant, delimiter }),
+  /** Writes the export to a path from the native Save dialog (.csv only). */
+  saveCsv: (variant: CsvVariant, delimiter: CsvDelimiter, path: string) =>
+    invoke<void>('save_csv', { variant, delimiter, path }),
+  /** Every incident, every field — for another steward to import. */
+  saveSessionFile: (path: string) => invoke<void>('save_session_file', { path }),
+  /** Merges other stewards' session files into this session. */
+  importSessions: (paths: string[]) => invoke<ImportReport>('import_sessions', { paths }),
 }
 
-export function onBackendEvent<K extends keyof ServerEvents>(
+/** A steward moved an incident to a new status (the Announce page posts it to Discord). */
+export interface AnnouncementDue {
+  /** As saved, with its new status. */
+  incident: Incident
+}
+
+/** The Socket.IO events of the old server, plus the desktop app's own. */
+interface DesktopEvents extends ServerEvents {
+  'announcement:due': AnnouncementDue
+}
+
+export function onBackendEvent<K extends keyof DesktopEvents>(
   event: K,
-  handler: (payload: ServerEvents[K]) => void,
+  handler: (payload: DesktopEvents[K]) => void,
 ): Promise<UnlistenFn> {
-  return listen<ServerEvents[K]>(event, (e) => handler(e.payload))
+  return listen<DesktopEvents[K]>(event, (e) => handler(e.payload))
 }
 
 export function isBackendError(error: unknown): error is BackendError {

@@ -15,11 +15,17 @@ pub const DEBOUNCE: Duration = Duration::from_millis(500);
 pub struct Paths {
     pub current_session: PathBuf,
     pub default_archive_dir: PathBuf,
+    /// Where the Save dialogs open until the steward picks a folder (Settings → Storage).
+    pub default_export_dir: PathBuf,
 }
 
 impl Paths {
     pub fn in_dir(data_dir: &Path) -> Self {
-        Self { current_session: data_dir.join("current-session.json"), default_archive_dir: data_dir.join("archive") }
+        Self {
+            current_session: data_dir.join("current-session.json"),
+            default_archive_dir: data_dir.join("archive"),
+            default_export_dir: data_dir.join("exports"),
+        }
     }
 }
 
@@ -45,7 +51,7 @@ pub fn restore(path: &Path) -> Option<PersistedState> {
         Ok(raw) => raw,
         Err(e) if e.kind() == io::ErrorKind::NotFound => return None,
         Err(e) => {
-            eprintln!("[store] Cannot read {}: {e} — starting empty", path.display());
+            eprintln!("[store] Cannot read {}: {e}, starting empty", path.display());
             return None;
         }
     };
@@ -65,7 +71,7 @@ fn set_aside_corrupt(path: &Path, reason: &str) {
     let aside = path.with_file_name(format!("current-session.corrupt-{}.json", UtcTime::now().archive_stamp()));
     match fs::rename(path, &aside) {
         Ok(()) => eprintln!(
-            "[store] {} is unreadable ({reason}) — moved to {} and starting empty",
+            "[store] {} is unreadable ({reason}), moved to {} and starting empty",
             path.display(),
             aside.display()
         ),
@@ -135,6 +141,9 @@ mod tests {
         let state = restore(&paths.current_session).expect("restores");
         assert_eq!(state.incidents[0].cars[0].car_class, "");
         assert_eq!(state.config.lookback_seconds, 8);
+        assert_eq!(state.config.adapter, crate::lmu::AdapterName::Mock);
+        let store = crate::store::Store::from_state(state);
+        assert_eq!(store.all()[0].replay_reference, "RACE 00:00:01 · Lap 0");
     }
 
     #[test]

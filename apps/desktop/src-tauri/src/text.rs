@@ -20,6 +20,14 @@ pub fn js_number(value: f64) -> String {
     }
 }
 
+/// Markdown text as a reader sees it: the rich-text editor stores "&" as "&amp;", which
+/// has no place in a CSV cell or a rule title. `&amp;` goes last, so "&amp;lt;" stays "&lt;".
+pub fn decode_entities(value: &str) -> String {
+    [("&lt;", "<"), ("&gt;", ">"), ("&quot;", "\""), ("&#39;", "'"), ("&nbsp;", " "), ("&amp;", "&")]
+        .iter()
+        .fold(value.to_string(), |text, (entity, plain)| text.replace(entity, plain))
+}
+
 /// Filesystem-safe slug for archive and CSV filenames.
 pub fn slugify(value: &str) -> String {
     let mut slug = String::new();

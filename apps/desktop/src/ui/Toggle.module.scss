@@ -1,0 +1,31 @@
+.toggle {
+  width: 34px;
+  height: 20px;
+  flex: none;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--color-border-strong);
+  transition: background 120ms ease;
+
+  span {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-text);
+    transition: transform 120ms ease;
+  }
+
+  &[aria-checked='true'] {
+    background: var(--color-status-no-further-action);
+
+    span {
+      transform: translateX(14px);
+    }
+  }
+}
+
+// Segmented.tsx: sits at the top of a settings row, not stretched to its height.
+.segmented {
+  align-self: flex-start;
+}

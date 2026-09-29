@@ -1,0 +1,91 @@
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  font: 500 10.5px/1.3 var(--font-mono);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+// Tinted by --tone ([data-status] in global.scss); the label always carries the meaning.
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent);
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+  color: var(--tone);
+  font: 600 11.5px/1.35 var(--font-ui);
+  white-space: nowrap;
+}
+
+.plate {
+  width: 34px;
+  height: 20px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  border-left: 3px solid color-mix(in srgb, var(--tone) 60%, transparent);
+  background: color-mix(in srgb, var(--tone) 22%, transparent);
+  font: 600 12px/1 var(--font-mono);
+  color: var(--color-text);
+}
+
+.plateSm {
+  composes: plate;
+  width: 28px;
+  height: 17px;
+  font-size: 10.5px;
+}
+
+.classTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 12.5px/1 var(--font-label);
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+
+  i {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--tone);
+  }
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 5px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 60%, transparent);
+  font: 700 10.5px/1.5 var(--font-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.internal {
+  composes: tag;
+  padding: 1px 6px;
+  background: var(--color-surface-raised);
+}
+
+.public {
+  composes: tag;
+  padding: 1px 6px;
+  border-color: color-mix(in srgb, var(--color-status-no-further-action) 40%, transparent);
+  background: color-mix(in srgb, var(--color-status-no-further-action) 12%, transparent);
+  color: var(--color-status-no-further-action);
+}

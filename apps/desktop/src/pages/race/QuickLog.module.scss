@@ -1,0 +1,120 @@
+.quickLog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.head,
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.foot > button:first-child {
+  padding-left: 2px;
+}
+
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--color-ground);
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 50%, transparent);
+  font: 500 12px var(--font-ui);
+  color: var(--color-text-muted);
+
+  &:hover,
+  &[aria-expanded='true'] {
+    border-color: var(--color-border-strong);
+  }
+
+  b {
+    font: 600 12px var(--font-mono);
+    color: var(--color-text);
+  }
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px dashed color-mix(in srgb, var(--color-border-strong) 60%, transparent);
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+
+  > svg {
+    color: var(--color-text-faint);
+  }
+
+  b {
+    color: var(--color-text);
+  }
+}
+
+.car {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px 6px 10px;
+  border-radius: 6px;
+  background: var(--color-ground);
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 50%, transparent);
+}
+
+.order {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-ground);
+  font: 700 11px/18px var(--font-ui);
+  text-align: center;
+}
+
+.who {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  b {
+    font-size: 13.5px;
+  }
+
+  span {
+    font-size: 11.5px;
+    color: var(--color-text-muted);
+  }
+}
+
+.stamp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+
+  b {
+    color: var(--color-text);
+  }
+}
+
+.vs {
+  margin-left: 0.4em;
+}
+
+:global([data-density='comfortable']) .quickLog {
+  gap: 14px;
+  padding: 18px 16px 20px;
+}

@@ -44,3 +44,8 @@ fn handles_leap_days_and_the_epoch() {
     // 2024-02-29T23:59:59.999Z
     assert_eq!(UtcTime::from_unix_millis(1_709_251_199_999).iso(), "2024-02-29T23:59:59.999Z");
 }
+
+#[test]
+fn decodes_the_entities_the_editor_writes_and_only_once() {
+    assert_eq!(super::decode_entities("Tom &amp; Jerry &lt;3 &amp;lt;"), "Tom & Jerry <3 &lt;");
+}

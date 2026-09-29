@@ -1,0 +1,168 @@
+/* The decisions document: a formal A4 page in black ink with one accent. It opens outside
+   the app (no app fonts), so it uses the metric-compatible Arial family everywhere. */
+:root {
+  /* The brand mark reads the app's own token names (brand/Mark.tsx). */
+  --color-accent: #e0302a;
+  --color-brand-red: #d4202b;
+  --color-brand-red-lo: #a8101c;
+  --color-text: #111111;
+  --ink: #111111;
+  --ink-2: #4a4a4a;
+  --ink-3: #7a7a7a;
+  --hair: #c9c9c9;
+  --shade: #f2f2f2;
+  --accent: #b5121b;
+}
+
+@page {
+  size: A4;
+  margin: 18mm 16mm 20mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #e9e9e9;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font:
+    9.5pt/1.45 Arial,
+    'Helvetica Neue',
+    Helvetica,
+    'Liberation Sans',
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* On screen the file reads as a sheet of paper; printed, the page margins take over. */
+main {
+  max-width: 210mm;
+  margin: 24px auto;
+  padding: 18mm 16mm;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+}
+
+@media print {
+  html {
+    background: none;
+  }
+
+  main {
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}
+
+.letterhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: 2pt solid var(--ink);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10pt;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.doctype {
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1 {
+  margin: 14pt 0 10pt;
+  font-size: 18pt;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.intro {
+  margin: 12pt 0 0;
+  color: var(--ink-2);
+}
+
+.part {
+  margin-top: 26pt;
+}
+
+/* A section title is a full-width black bar, its number in a red block: the page's
+   categories read at a glance, even flicking through a printed copy. */
+h2 {
+  display: flex;
+  align-items: stretch;
+  margin: 0 0 12pt;
+  background: var(--ink);
+  color: #fff;
+  font-size: 12.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  break-after: avoid;
+
+  .n {
+    flex: none;
+    min-width: 11mm;
+    padding: 6pt 0;
+    background: var(--accent);
+    text-align: center;
+  }
+
+  .t {
+    padding: 6pt 10pt;
+  }
+}
+
+.none,
+.lead {
+  margin: 4pt 0 6pt;
+  color: var(--ink-2);
+}
+
+.signatures {
+  margin-top: 22pt;
+  break-inside: avoid;
+
+  .lead {
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .names {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14pt 28pt;
+    margin-top: 22pt;
+  }
+
+  .names span {
+    min-width: 42mm;
+    padding-top: 3pt;
+    border-top: 0.5pt solid var(--ink);
+    font-size: 8.5pt;
+  }
+}
+
+.notice {
+  margin-top: 16pt;
+  font-size: 8pt;
+  color: var(--ink-3);
+}

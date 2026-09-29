@@ -12,7 +12,7 @@ pub fn compute_event_seconds(current_elapsed: f64, lookback_seconds: f64) -> f64
 
 /// "RACE 01:23:45 — Lap 42" — typed into the LMU replay scrubber.
 pub fn build_replay_reference(session_type: SessionType, event_seconds: f64, lap: i64) -> String {
-    format!("{} {} — Lap {lap}", wire_name(&session_type), format_hms(event_seconds))
+    format!("{} {} · Lap {lap}", wire_name(&session_type), format_hms(event_seconds))
 }
 
 /// The lap is historical (taken from the first car at log time). An incident with no cars

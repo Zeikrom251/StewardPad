@@ -59,6 +59,9 @@
 
 // Amber, not accent: simulated data is a caution, not an attention-now event.
 .simulator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-right: 12px;
   padding: 3px 8px;
   border: 1px solid color-mix(in srgb, var(--color-status-under-investigation) 40%, transparent);
@@ -68,4 +71,8 @@
   font: 700 11.5px/1.2 var(--font-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-status-under-investigation) 20%, transparent);
+  }
 }

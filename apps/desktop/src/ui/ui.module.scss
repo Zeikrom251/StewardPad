@@ -1,0 +1,164 @@
+@use '../styles/tokens' as *;
+@use 'buttons';
+
+// Shared controls (design/01-foundations.html → Components). Compose with cx().
+
+// Text inputs and read-only values share one box (dropdowns: ui/Select).
+.field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: var(--color-ground);
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 80%, transparent);
+  font: 400 13px/1.35 var(--font-ui);
+  color: var(--color-text);
+  user-select: text;
+
+  &:focus-within {
+    border-color: var(--color-border-strong);
+  }
+
+  input,
+  textarea {
+    flex: 1 1 0;
+    min-width: 0;
+    background: none;
+    border: 0;
+    outline: none;
+  }
+
+  ::placeholder {
+    color: var(--color-text-faint);
+  }
+}
+
+.area {
+  composes: field;
+  align-items: flex-start;
+
+  textarea {
+    min-height: 44px;
+    resize: none;
+    line-height: 1.45;
+  }
+}
+
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+
+  > button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font: 500 12.5px var(--font-ui);
+    color: var(--color-text-muted);
+
+    &:hover {
+      color: var(--color-text);
+    }
+
+    &[aria-pressed='true'] {
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      font-weight: 600;
+    }
+  }
+}
+
+.count {
+  font: 400 11px var(--font-mono);
+  color: var(--color-text-faint);
+}
+
+.label {
+  @include label;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.check {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 90%, transparent);
+  color: var(--color-ground);
+
+  &[aria-checked='true'] {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.toolbar {
+  height: 52px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--color-border);
+
+  h1 {
+    font: 600 16px var(--font-ui);
+  }
+}
+
+.grow {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.faint {
+  color: var(--color-text-faint);
+}
+
+.trunc {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.warnbox {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--color-status-under-investigation) 40%, transparent);
+  background: color-mix(in srgb, var(--color-status-under-investigation) 10%, transparent);
+  font-size: 12.5px;
+  line-height: 1.45;
+
+  > svg {
+    color: var(--color-status-under-investigation);
+  }
+}

@@ -1,0 +1,101 @@
+// Edit mode (RulebookEditor.tsx), @used by RulesPage.module.scss.
+.bad {
+  color: var(--color-status-penalty-applied);
+  font-weight: 600;
+}
+
+.problems {
+  flex: none;
+  max-height: 168px;
+  overflow-y: auto;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border);
+
+  li {
+    --tone: var(--color-status-penalty-applied);
+    display: flex;
+    gap: 10px;
+    padding: 8px 16px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    background: color-mix(in srgb, var(--tone) 8%, transparent);
+    box-shadow: inset 3px 0 0 var(--tone);
+
+    &[data-level='warning'] {
+      --tone: var(--color-status-under-investigation);
+    }
+
+    > svg {
+      flex: none;
+      margin-top: 2px;
+      color: var(--tone);
+    }
+  }
+
+  code {
+    margin-left: 8px;
+    font: 12px var(--font-mono);
+    color: var(--color-text-muted);
+  }
+}
+
+.editArea {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px max(24px, calc((100% - 880px) / 2)) 32px;
+}
+
+.structure {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+
+  code {
+    font: 12px var(--font-mono);
+    color: var(--color-text);
+  }
+}
+
+// The whole book is one long document: the editor grows with it, the area scrolls.
+.bookEditor {
+  flex: none;
+
+  :global(.ProseMirror) {
+    min-height: 60vh;
+    padding: 14px 18px;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+
+  h2 {
+    margin: 18px 0 6px;
+    font: 600 16px var(--font-ui);
+  }
+
+  p + p {
+    margin-top: 8px;
+  }
+}
+
+.outline {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+
+  > svg {
+    flex: none;
+    color: var(--color-accent);
+  }
+}

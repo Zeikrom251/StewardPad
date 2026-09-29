@@ -36,12 +36,12 @@ impl Core {
         if let Some(previous) = self.last_session.replace(update.session.clone()) {
             if is_new_session(&previous, &update.session) {
                 eprintln!(
-                    "[incidents] New LMU session ({}) — archiving {}",
+                    "[incidents] New LMU session ({}), archiving {}",
                     update.session.track_name, previous.track_name
                 );
                 incidents_changed = true;
                 if let Err(error) = self.archive(&previous.track_name) {
-                    eprintln!("[incidents] {} — keeping the incidents in the current session", error.message);
+                    eprintln!("[incidents] {}, keeping the incidents in the current session", error.message);
                 }
             }
         }
@@ -74,6 +74,7 @@ impl Core {
             kind: collision.kind,
             logged_by: "LMU".to_string(),
             source: IncidentSource::Lmu,
+            lmu_key: Some(collision.key.clone()),
             fields: IncidentFields { steward_notes: unresolved, ..IncidentFields::default() },
         };
         self.store.mark_lmu_key_seen(&collision.key);

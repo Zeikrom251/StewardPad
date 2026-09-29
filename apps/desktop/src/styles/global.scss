@@ -55,3 +55,41 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+// One tone per status and class; components tint with color-mix(var(--tone) …).
+// Unknown classes (anything LMU adds later) fall back to a neutral tone.
+[data-status],
+[data-class] {
+  --tone: var(--color-text-faint);
+}
+[data-status='NOTED'] {
+  --tone: var(--color-status-noted);
+}
+[data-status='UNDER_INVESTIGATION'] {
+  --tone: var(--color-status-under-investigation);
+}
+[data-status='NO_FURTHER_ACTION'] {
+  --tone: var(--color-status-no-further-action);
+}
+[data-status='PENALTY_APPLIED'] {
+  --tone: var(--color-status-penalty-applied);
+}
+[data-status='DISMISSED'] {
+  --tone: var(--color-status-dismissed);
+}
+[data-class='HYPERCAR'] {
+  --tone: var(--color-class-hypercar);
+}
+[data-class='LMP2'] {
+  --tone: var(--color-class-lmp2);
+}
+[data-class='LMGT3'] {
+  --tone: var(--color-class-lmgt3);
+}

@@ -48,3 +48,17 @@
   font-weight: 600;
   color: var(--color-text);
 }
+
+.notice {
+  composes: item;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-accent);
+}
+
+.divider {
+  width: 1px;
+  height: 16px;
+  background: var(--color-border);
+}

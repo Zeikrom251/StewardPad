@@ -40,7 +40,7 @@ impl ConnectionLog {
         if self.state == State::Disconnected {
             return false;
         }
-        eprintln!("[lmu] Cannot reach LMU at {} — retrying", self.base_url);
+        eprintln!("[lmu] Cannot reach LMU at {}, retrying", self.base_url);
         let was_connected = self.state == State::Connected;
         self.state = State::Disconnected;
         was_connected
@@ -65,12 +65,12 @@ impl ConnectionLog {
     }
 
     pub fn unknown_phase(&mut self, value: String) {
-        self.once(format!("Unrecognized LMU gamePhase \"{value}\" — mapping to UNKNOWN"));
+        self.once(format!("Unrecognized LMU gamePhase \"{value}\", mapping to UNKNOWN"));
     }
 
     /// Covers both "no slot has this name" and "more than one does": dropped, never guessed.
     pub fn unresolved_driver(&mut self, name: &str) {
-        self.once(format!("LMU incidents feed named driver \"{name}\" — not uniquely resolvable, skipping"));
+        self.once(format!("LMU incidents feed named driver \"{name}\", not uniquely resolvable, skipping"));
     }
 
     fn once(&mut self, line: String) {
