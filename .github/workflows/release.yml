@@ -45,5 +45,8 @@ jobs:
         with:
           projectPath: apps/desktop
           tauriScript: pnpm tauri
+          # Only release builds sign an update package (and publish latest.json), so a local
+          # `pnpm desktop:build` needs no signing key.
+          args: --config src-tauri/tauri.release.conf.json
           releaseId: ${{ github.event.release.id }}
           updaterJsonPreferNsis: true
