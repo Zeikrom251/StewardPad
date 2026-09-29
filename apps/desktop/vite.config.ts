@@ -14,5 +14,7 @@ export default defineConfig({
   build: {
     // WebView2 (Windows) is evergreen Chromium — no legacy output needed.
     target: 'chrome120',
+    // One local bundle read from disk, never downloaded — chunk size doesn't matter here.
+    chunkSizeWarningLimit: 1500,
   },
 })
