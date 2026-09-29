@@ -26,7 +26,8 @@ export type PenaltyType =
   | 'GRID_PENALTY_NEXT_RACE'
   | 'DISQUALIFICATION'
 
-export type InvolvedRole = 'REPORTED' | 'REPORTER' | 'INVOLVED'
+/** CAUSED: held responsible; AFFECTED: suffered from it (desktop app only, for now). */
+export type InvolvedRole = 'REPORTED' | 'REPORTER' | 'INVOLVED' | 'CAUSED' | 'AFFECTED'
 
 export interface InvolvedCar {
   carNumber: string
@@ -51,6 +52,12 @@ export interface Penalty {
   notes: string
 }
 
+/** A rule from the league's rule book, copied onto the incident. */
+export interface RuleRef {
+  code: string
+  title: string
+}
+
 /** 'LMU' incidents are auto-created from LMU's incidents feed; never client-writable. */
 export type IncidentSource = 'STEWARD' | 'LMU'
 
@@ -66,6 +73,11 @@ export interface Incident {
   mergedIntoId: string | null
   /** Set on the primary: the ids of incidents folded into it (append-only). */
   mergedFromIds: string[]
+  /**
+   * The LMU contact an auto-created incident came from — the same on every steward's PC
+   * in a session, so shared session files recognise the same incident. Desktop app only.
+   */
+  lmuKey?: string
   /** When it HAPPENED, after the look-back offset. */
   eventSeconds: number
   /** When the steward pressed the key. */
@@ -84,6 +96,8 @@ export interface Incident {
   /** Published wording, goes to drivers. */
   decision: string
   penalty: Penalty | null
+  /** Rules the steward found broken (desktop app; absent from the NestJS server). */
+  rules?: RuleRef[]
   loggedBy: string
   reviewedBy: string | null
   createdAt: string
