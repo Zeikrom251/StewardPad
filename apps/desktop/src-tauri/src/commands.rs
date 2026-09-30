@@ -90,6 +90,12 @@ pub fn delete_incident(app: AppHandle, state: State<AppState>, id: String) -> Ap
     mutate(&app, &state, |core| core.remove(&id))
 }
 
+/// Incidents page → Delete on the ticked rows: one change, one save, one list update.
+#[tauri::command]
+pub fn delete_incidents(app: AppHandle, state: State<AppState>, ids: Vec<String>) -> AppResult<()> {
+    mutate(&app, &state, |core| core.remove_many(&ids))
+}
+
 #[tauri::command]
 pub fn merge_incidents(app: AppHandle, state: State<AppState>, input: MergeInput) -> AppResult<Incident> {
     mutate(&app, &state, |core| core.merge(input))

@@ -41,6 +41,7 @@ pub fn run() {
             commands::create_incident,
             commands::update_incident,
             commands::delete_incident,
+            commands::delete_incidents,
             commands::merge_incidents,
             commands::archive_session,
             commands::flush_session,

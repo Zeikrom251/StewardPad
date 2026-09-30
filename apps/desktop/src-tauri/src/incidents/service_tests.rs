@@ -171,3 +171,24 @@ fn a_save_that_changes_nothing_keeps_the_other_stewards_review() {
     assert_eq!(viewed.reviewed_by.as_deref(), Some("Nina"));
     assert_eq!(viewed.updated_at, reviewed.updated_at);
 }
+
+#[test]
+fn deleting_several_removes_them_all_or_none() {
+    let (mut core, _) = core("delete-many");
+    let car = |n: &str| {
+        fields(
+            json!({ "cars": [{ "carNumber": n, "driverName": "A", "carClass": "HYPERCAR", "lapAtIncident": 9, "role": "INVOLVED" }] }),
+        )
+    };
+    let (a, b, kept) = (
+        core.create(car("7")).expect("creates"),
+        core.create(car("8")).expect("creates"),
+        core.create(car("9")).expect("creates"),
+    );
+    let unknown = core.remove_many(&[a.id.clone(), "no-such-id".into()]);
+    assert!(unknown.is_err());
+    assert_eq!(core.list().len(), 3, "an unknown id deletes nothing");
+    core.remove_many(&[a.id, b.id]).expect("deletes");
+    let left: Vec<String> = core.list().into_iter().map(|i| i.id).collect();
+    assert_eq!(left, vec![kept.id]);
+}

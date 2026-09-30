@@ -65,6 +65,8 @@ export const backend = {
   updateIncident: (id: string, input: UpdateIncidentInput) =>
     invoke<Incident>('update_incident', { id, input }),
   deleteIncident: (id: string) => invoke<void>('delete_incident', { id }),
+  /** All or none: if one id is unknown, nothing is deleted. */
+  deleteIncidents: (ids: string[]) => invoke<void>('delete_incidents', { ids }),
   mergeIncidents: (input: MergeIncidentsInput) => invoke<Incident>('merge_incidents', { input }),
   /** Archives a copy, then clears the list — also the "Clear all" action. */
   archiveSession: () => invoke<void>('archive_session'),
