@@ -32,6 +32,31 @@ function AddCars({
   )
 }
 
+// A busy car can be in dozens of incidents: past this many, the rest fold behind "+N more".
+const ALSO_IN_SHOWN = 10
+
+/** The car's other incidents, as links that open them; wraps inside the section. */
+function AlsoIn({ others }: { others: Incident[] }) {
+  const { openIncident } = useWorkspace()
+  const [all, setAll] = useState(false)
+  const shown = all ? others : others.slice(0, ALSO_IN_SHOWN)
+  return (
+    <div className={styles.also}>
+      <span className={styles.alsoLabel}>Also in</span>
+      {shown.map((other) => (
+        <button key={other.id} type="button" onClick={() => openIncident(other.id)}>
+          #{other.sequenceNumber}
+        </button>
+      ))}
+      {shown.length < others.length && (
+        <button type="button" className={styles.more} onClick={() => setAll(true)}>
+          +{others.length - shown.length} more
+        </button>
+      )}
+    </div>
+  )
+}
+
 function CarRow({
   car,
   incident,
@@ -44,7 +69,6 @@ function CarRow({
   onRemove: () => void
 }) {
   const live = useLive()
-  const { openIncident } = useWorkspace()
   const entry = live?.standings.find((s) => carKey(s) === carKey(car))
   const others = (live?.incidents ?? [])
     .filter((i) => i.id !== incident.id && i.cars.some((c) => carKey(c) === carKey(car)))
@@ -79,16 +103,7 @@ function CarRow({
           <Icon name="x" size={15} />
         </button>
       </div>
-      {others.length > 0 && (
-        <div className={styles.also}>
-          Also in
-          {others.map((other) => (
-            <button key={other.id} type="button" onClick={() => openIncident(other.id)}>
-              #{other.sequenceNumber}
-            </button>
-          ))}
-        </div>
-      )}
+      {others.length > 0 && <AlsoIn others={others} />}
     </div>
   )
 }
