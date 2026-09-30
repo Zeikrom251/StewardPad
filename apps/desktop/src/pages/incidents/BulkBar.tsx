@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Incident, IncidentStatus } from '@stewardpad/shared'
 import { backend } from '../../backend/backend'
 import { Icon } from '../../icons'
@@ -25,6 +26,41 @@ function SetStatusMenu({ onPick }: { onPick: (status: IncidentStatus) => void })
   )
 }
 
+/** Deletes the ticked rows after one more click, in place (as the inspector's delete does). */
+function DeleteSelected({ checked, onDone }: { checked: Incident[]; onDone: () => void }) {
+  const { openId, openIncident, report } = useWorkspace()
+  const [armed, setArmed] = useState(false)
+  const remove = () => {
+    const ids = checked.map((i) => i.id)
+    backend
+      .deleteIncidents(ids)
+      .then(() => {
+        if (openId && ids.includes(openId)) openIncident(null)
+        onDone()
+      })
+      .catch((error: unknown) => report('Could not delete the selected incidents', error))
+  }
+  if (!armed) {
+    return (
+      <button type="button" className={cx(ui.btn, ui.ghost, ui.sm)} onClick={() => setArmed(true)}>
+        <Icon name="trash" size={14} />
+        Delete
+      </button>
+    )
+  }
+  return (
+    <button
+      type="button"
+      className={cx(ui.btn, ui.danger, ui.sm)}
+      onBlur={() => setArmed(false)}
+      onClick={remove}
+      autoFocus
+    >
+      Delete {checked.length} {checked.length === 1 ? 'incident' : 'incidents'}?
+    </button>
+  )
+}
+
 function useBulkActions(checked: Incident[], onDone: () => void) {
   const { openIncident, report } = useWorkspace()
   const sorted = [...checked].sort((a, b) => a.sequenceNumber - b.sequenceNumber)
@@ -46,7 +82,7 @@ function useBulkActions(checked: Incident[], onDone: () => void) {
   return { sorted, primary, setStatus, merge }
 }
 
-/** Bulk actions on the ticked rows: set one status, or merge into the earliest incident. */
+/** Bulk actions on the ticked rows: delete them, set one status, or merge into the earliest. */
 export function BulkBar({ checked, onDone }: { checked: Incident[]; onDone: () => void }) {
   const { sorted, primary, setStatus, merge } = useBulkActions(checked, onDone)
   return (
@@ -59,6 +95,7 @@ export function BulkBar({ checked, onDone }: { checked: Incident[]; onDone: () =
         {sorted.map((i) => `#${i.sequenceNumber}`).join(' · ')}
       </span>
       <span className={ui.grow} />
+      <DeleteSelected checked={checked} onDone={onDone} />
       <SetStatusMenu onPick={setStatus} />
       {primary && checked.length > 1 && (
         <button type="button" className={cx(ui.btn, ui.primary, ui.sm)} onClick={merge}>

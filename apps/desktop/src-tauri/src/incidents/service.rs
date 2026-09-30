@@ -134,6 +134,18 @@ impl Core {
         Ok(())
     }
 
+    /// Deletes several incidents as one change. If any id is unknown, none is deleted.
+    pub fn remove_many(&mut self, ids: &[String]) -> AppResult<()> {
+        if let Some(missing) = ids.iter().find(|id| self.store.get(id).is_none()) {
+            return Err(AppError::not_found(format!("Incident {missing} not found")));
+        }
+        for id in ids {
+            self.store.delete(id);
+        }
+        self.changed();
+        Ok(())
+    }
+
     pub(crate) fn insert(&mut self, draft: Draft) -> Incident {
         let lap = draft.cars.first().and_then(|c| c.lap_at_incident).unwrap_or_else(|| self.leader_lap());
         let now = UtcTime::now().iso();
