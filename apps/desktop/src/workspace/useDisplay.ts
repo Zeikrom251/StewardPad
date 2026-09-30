@@ -11,6 +11,7 @@ export const DEFAULT_DISPLAY: DisplayPrefs = {
   textScale: 100,
   hiddenColumns: [],
   collapsedSections: [],
+  racePanelFolded: false,
 }
 
 /** Settings → Display, read and written through the saved config. */

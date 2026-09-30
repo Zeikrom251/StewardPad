@@ -1,3 +1,4 @@
+import type { Snapshot } from '../../backend/backend'
 import { useLive } from '../../backend/LiveProvider'
 import { Inspector } from '../../inspector/Inspector'
 import { Icon } from '../../icons'
@@ -6,6 +7,8 @@ import { cx } from '../../ui/primitives'
 import ui from '../../ui/ui.module.scss'
 import { useWorkspace } from '../../workspace/Workspace'
 import { useDataSource } from '../../workspace/useDataSource'
+import { useDisplay } from '../../workspace/useDisplay'
+import { useIncidentActions } from '../../workspace/useIncidentActions'
 import { IncidentFeed } from './IncidentFeed'
 import { QuickLog } from './QuickLog'
 import { Standings } from './Standings'
@@ -45,6 +48,53 @@ function WaitingForLmu({ lastSeen }: { lastSeen: number }) {
   )
 }
 
+/** Folded, the panel keeps one button: Log incident live, Log a missed incident offline. */
+function FoldedPanel({ connected, onUnfold }: { connected: boolean; onUnfold: () => void }) {
+  const { quickLog, logMissed } = useIncidentActions()
+  const log = connected ? 'Log incident (Space)' : 'Log a missed incident'
+  return (
+    <aside className={styles.strip} aria-label="Quick log, folded">
+      <button
+        type="button"
+        className={ui.iconBtn}
+        aria-label="Show the quick log and incidents"
+        title="Show the quick log and incidents"
+        onClick={onUnfold}
+      >
+        <Icon name="left" size={16} />
+      </button>
+      <button
+        type="button"
+        className={cx(ui.btn, ui.primary, styles.stripLog)}
+        aria-label={log}
+        title={log}
+        onClick={connected ? quickLog : logMissed}
+      >
+        <Icon name={connected ? 'flag' : 'plus'} size={16} strokeWidth={2} />
+      </button>
+    </aside>
+  )
+}
+
+/** The right-hand panel: quick log + feed, or a thin strip so the timing tower gets the width. */
+function RacePanel({ live }: { live: Snapshot }) {
+  const { prefs, update } = useDisplay()
+  if (prefs.racePanelFolded) {
+    return (
+      <FoldedPanel
+        connected={live.session.connected}
+        onUnfold={() => update({ racePanelFolded: false })}
+      />
+    )
+  }
+  return (
+    <aside className={styles.panel}>
+      <QuickLog live={live} onFold={() => update({ racePanelFolded: true })} />
+      <IncidentFeed incidents={live.incidents} />
+    </aside>
+  )
+}
+
 /** Race control (design/02, 03, 08): timing tower left, quick log + feed or the inspector right. */
 export function RacePage() {
   const live = useLive()
@@ -59,14 +109,7 @@ export function RacePage() {
       ) : (
         <WaitingForLmu lastSeen={live.session.elapsedSeconds} />
       )}
-      {open ? (
-        <Inspector key={open.id} incident={open} />
-      ) : (
-        <aside className={styles.panel}>
-          <QuickLog live={live} />
-          <IncidentFeed incidents={live.incidents} />
-        </aside>
-      )}
+      {open ? <Inspector key={open.id} incident={open} /> : <RacePanel live={live} />}
     </>
   )
 }

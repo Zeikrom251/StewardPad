@@ -27,11 +27,19 @@ pub struct DisplayPrefs {
     pub hidden_columns: Vec<String>,
     /// Inspector section ids kept folded.
     pub collapsed_sections: Vec<String>,
+    /// Race page: the quick log + feed folded to a thin strip.
+    pub race_panel_folded: bool,
 }
 
 impl Default for DisplayPrefs {
     fn default() -> Self {
-        Self { density: Density::Compact, text_scale: 100, hidden_columns: Vec::new(), collapsed_sections: Vec::new() }
+        Self {
+            density: Density::Compact,
+            text_scale: 100,
+            hidden_columns: Vec::new(),
+            collapsed_sections: Vec::new(),
+            race_panel_folded: false,
+        }
     }
 }
 

@@ -77,6 +77,8 @@ export interface DisplayPrefs {
   hiddenColumns: string[]
   /** Inspector section ids kept folded. */
   collapsedSections: string[]
+  /** Race page: the quick log + feed folded to a thin strip, for a wider timing tower. */
+  racePanelFolded: boolean
 }
 
 export interface AppConfig {
