@@ -115,13 +115,22 @@ function LiveActions({ live }: { live: Snapshot }) {
 }
 
 /** Docked quick-log panel: selection, stamp preview, and the one big button. */
-export function QuickLog({ live }: { live: Snapshot }) {
+export function QuickLog({ live, onFold }: { live: Snapshot; onFold: () => void }) {
   return (
     <div className={styles.quickLog}>
       <div className={styles.head}>
         <span className={ui.label}>Quick log</span>
         <span className={ui.grow} />
         <LookbackPill value={live.config.lookbackSeconds} />
+        <button
+          type="button"
+          className={cx(ui.iconBtn, styles.fold)}
+          aria-label="Fold the panel"
+          title="Fold the panel"
+          onClick={onFold}
+        >
+          <Icon name="right" size={16} />
+        </button>
       </div>
       {live.session.connected ? <LiveActions live={live} /> : <OfflineActions live={live} />}
     </div>
