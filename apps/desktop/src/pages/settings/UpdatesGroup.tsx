@@ -14,8 +14,8 @@ function status(state: UpdateState): string {
       return 'Looking for a new version…'
     case 'latest':
       return 'You have the latest version.'
-    case 'offline':
-      return 'Could not reach GitHub. Check the connection and try again.'
+    case 'failed':
+      return state.reason
     case 'available':
       return `Version ${state.update.version} is out. Your session is saved first, then StewardPad closes for a few seconds while it installs and reopens by itself. Best done between sessions.`
     case 'downloading':

@@ -3,6 +3,7 @@ import { getVersion } from '@tauri-apps/api/app'
 import { check, type Update } from '@tauri-apps/plugin-updater'
 import { backend } from '../backend/backend'
 import { useWorkspace } from '../workspace/Workspace'
+import { failureReason } from './failureReason'
 
 export type UpdateState =
   | { kind: 'idle' }
@@ -11,7 +12,7 @@ export type UpdateState =
   | { kind: 'available'; update: Update }
   | { kind: 'downloading'; update: Update; percent: number | null }
   | { kind: 'installing'; update: Update }
-  | { kind: 'offline' }
+  | { kind: 'failed'; reason: string }
 
 export interface Updater {
   /** This build's version, from tauri.conf.json. */
@@ -35,9 +36,9 @@ export function useUpdaterState(): Updater {
     check()
       .then((update) => setState(update ? { kind: 'available', update } : { kind: 'latest' }))
       .catch((error: unknown) => {
-        // Offline at the track is normal: note it, and let the steward retry from Settings.
+        // Offline at the track is normal: Settings says why, and the steward can retry there.
         console.warn('[update] Could not check for a new version:', error)
-        setState({ kind: 'offline' })
+        setState({ kind: 'failed', reason: failureReason(error) })
       })
   }, [])
 
