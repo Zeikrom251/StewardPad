@@ -71,7 +71,7 @@ function useAutosave(id: string) {
 
 /**
  * Local editable copy of the open incident, autosaved 500 ms after the last change
- * (ported from apps/client). The inspector is keyed by incident id, so a different
+ * (ported from the old web client). The inspector is keyed by incident id, so a different
  * incident remounts this hook; an incidents:update broadcast never resets the draft,
  * which would wipe a sentence mid-typing.
  */

@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/Zeikrom251/StewardPad/releases/latest"><img alt="Download for Windows" src=".github/assets/readme/button-download.png" height="48"></a>
-  <a href="changelog"><img alt="What's new" src=".github/assets/readme/button-changelog.png" height="48"></a>
+  <a href="https://github.com/Zeikrom251/StewardPad/releases"><img alt="What's new" src=".github/assets/readme/button-changelog.png" height="48"></a>
 </p>
 
 #

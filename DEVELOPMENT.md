@@ -18,8 +18,6 @@ pnpm install          # once
 pnpm desktop          # the desktop app in a dev window (Windows, needs Rust)
 pnpm desktop:build    # Windows installer, in apps/desktop/src-tauri/target/release/bundle
 pnpm desktop:test     # the desktop backend's Rust tests (cargo test)
-pnpm dev              # the website, on localhost:5173
-pnpm build            # shared → website; set SITE_URL (the deployed address) for link previews
 pnpm lint             # typecheck every package + prettier --check
 pnpm format           # prettier --write
 pnpm test             # every *.test.ts, with node:test
@@ -30,18 +28,17 @@ Keep `cargo clippy --all-targets -- -D warnings` clean as well: CI fails on a wa
 
 ## Layout
 
-| Path                | Package               | What it is                                                     |
-| ------------------- | --------------------- | -------------------------------------------------------------- |
-| `apps/desktop`      | `@stewardpad/desktop` | The app: Tauri 2, a Rust backend in `src-tauri`, React + SCSS  |
-| `apps/client`       | `@stewardpad/client`  | The website: home, download, docs and changelog (React + SCSS) |
-| `packages/shared`   | `@stewardpad/shared`  | Domain types, the contract between the UI and the backend      |
-| `packages/brand`    | `@stewardpad/brand`   | Brand tokens, bundled fonts, the mark and the wordmark         |
-| `changelog/`        | —                     | Release notes, one file per version (see below)                |
-| `scripts/`          | —                     | `discover-lmu.ts`, the LMU probe; `run-tests.mjs`              |
-| `.github/workflows` | —                     | `ci.yml` on every pull request, `release.yml` on a release     |
+| Path                | Package               | What it is                                                    |
+| ------------------- | --------------------- | ------------------------------------------------------------- |
+| `apps/desktop`      | `@stewardpad/desktop` | The app: Tauri 2, a Rust backend in `src-tauri`, React + SCSS |
+| `packages/shared`   | `@stewardpad/shared`  | Domain types, the contract between the UI and the backend     |
+| `packages/brand`    | `@stewardpad/brand`   | Brand tokens, bundled fonts, the mark and the wordmark        |
+| `scripts/`          | —                     | `discover-lmu.ts`, the LMU probe; `run-tests.mjs`             |
+| `.github/workflows` | —                     | `ci.yml` on every pull request, `release.yml` on a release    |
 
-Shared types are defined once in `packages/shared` and imported by both apps, never duplicated;
-`src-tauri/src/domain.rs` mirrors them, so change both together. There is no database, no
+Shared types are defined once in `packages/shared`, never duplicated; `src-tauri/src/domain.rs`
+mirrors them, so change both together. The website, with the release notes it shows, lives in
+its own repository (stewardpad.com); it keeps a copy of `packages/brand`. There is no database, no
 authentication and no server to deploy: this is a local tool on a trusted machine.
 
 ## How the desktop app works
@@ -104,22 +101,22 @@ Known gaps in what the game exposes:
 
 ## Checks and releases
 
-**Every pull request** runs `.github/workflows/ci.yml`: lint, tests and the website build on
-Linux, then clippy and the Rust tests on Windows. Merge only when both are green.
+**Every pull request** runs `.github/workflows/ci.yml`: lint and tests on Linux, then clippy and
+the Rust tests on Windows. Merge only when both are green.
 
 **Publishing a release** runs `.github/workflows/release.yml`, which builds the Windows installer
 and attaches it to the release. To ship version 0.2.0:
 
 1. Set the version to `0.2.0` in `apps/desktop/src-tauri/tauri.conf.json`,
    `apps/desktop/src-tauri/Cargo.toml` and `apps/desktop/package.json`.
-2. Add `changelog/v0.2.0.md` and merge to `main`.
+2. Merge to `main`, and add the release notes (`changelog/v0.2.0.md`) to the website repo.
 3. On GitHub, **Releases → Draft a new release**, tag `v0.2.0` on `main`, publish.
 
 The workflow stops if the tag doesn't equal `v` + the `tauri.conf.json` version. The installer is
 built only for a published release, never for a pull request.
 
-**Release notes.** One Markdown file per release in `changelog/`, shown on the website's
-changelog page. The format is in [`changelog/README.md`](changelog/README.md).
+**Release notes.** One Markdown file per release in the website repo's `changelog/`, shown on
+its changelog page; paste the same notes into the GitHub release, where the app reads them.
 
 **In-app updates.** A release also publishes a signed update package and a `latest.json`. Each
 time StewardPad starts, it reads `releases/latest/download/latest.json`; when that version is
@@ -141,12 +138,11 @@ Every dependency is justified or it doesn't go in. Versions are pinned exactly.
 
 | Dependency                                                               | Why                                                                                                                |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `react`, `react-dom`                                                     | The UI framework, for the desktop app and the website.                                                             |
-| `vite`, `@vitejs/plugin-react`                                           | Dev server and build for the desktop UI and the website.                                                           |
+| `react`, `react-dom`                                                     | The UI framework.                                                                                                  |
+| `vite`, `@vitejs/plugin-react`                                           | Dev server and build for the desktop UI.                                                                           |
 | `typescript`, `@types/*`                                                 | Types.                                                                                                             |
-| `sass`                                                                   | SCSS modules for both apps; the brand tokens are CSS custom properties in `packages/brand`.                        |
+| `sass`                                                                   | SCSS modules; the brand tokens are CSS custom properties in `packages/brand`.                                      |
 | `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/markdown` | The Markdown editor for the investigation, notes, decision and rule book; it stores plain Markdown strings.        |
-| `marked`                                                                 | Renders `changelog/*.md` on the website's changelog page; no dependencies of its own.                              |
 | `prettier`                                                               | Formatting.                                                                                                        |
 | `tsx`                                                                    | Runs a TypeScript file directly: `pnpm discover` and `pnpm test`.                                                  |
 | `@tauri-apps/cli`, `tauri`, `tauri-build` (crates)                       | Packages the React UI in a native Windows window and builds the installer, without shipping a whole browser.       |
@@ -159,7 +155,7 @@ Every dependency is justified or it doesn't go in. Versions are pinned exactly.
 
 Deliberately **not** used: no HTTP client in the UI (native `fetch`; Discord's webhook is posted
 from the webview), no CSV library (a hand-written generator: Excel needs exact control), no
-router library (the website's few pages use a small router over the History API), no test
+router library, no test
 framework (`node:test` from the standard library), no ESLint (`tsc --noEmit` plus Prettier
 covers this codebase without two more dependencies and a config to maintain).
 
