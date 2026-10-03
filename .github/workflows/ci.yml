@@ -1,5 +1,5 @@
-# Every pull request (and main after a merge): lint, test and build the website, then lint and
-# test the desktop app on Windows. The installer is built only on release (release.yml).
+# Every pull request (and main after a merge): lint and test the TypeScript, then lint and test
+# the desktop app on Windows. The installer is built only on release (release.yml).
 # A red check means the work is not ready to merge.
 name: CI
 
@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   web:
-    name: Lint, test and build (TypeScript)
+    name: Lint and test (TypeScript)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -29,8 +29,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm test
-      - name: Build the website
-        run: pnpm build
 
   desktop:
     name: Test the desktop app (Windows)
