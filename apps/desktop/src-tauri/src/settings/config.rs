@@ -21,6 +21,7 @@ pub struct AppConfig {
     pub rulebook: Option<Rulebook>,
     pub display: DisplayPrefs,
     pub discord: DiscordSettings,
+    pub welcomed: bool,
 }
 
 impl Core {
@@ -35,6 +36,7 @@ impl Core {
             rulebook: config.rulebook.clone(),
             display: config.display.clone(),
             discord: config.discord.clone(),
+            welcomed: config.welcomed,
         }
     }
 
@@ -52,6 +54,9 @@ impl Core {
         }
         if let Some(discord) = input.discord {
             config.discord = discord;
+        }
+        if let Some(welcomed) = input.welcomed {
+            config.welcomed = welcomed;
         }
         if let Some(dir) = input.archive_dir {
             config.archive_dir = (!dir.trim().is_empty()).then_some(dir);

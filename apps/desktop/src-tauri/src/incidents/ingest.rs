@@ -4,7 +4,7 @@
 use crate::core::Core;
 use crate::domain::IncidentSource;
 use crate::lmu::resolver::LmuCollision;
-use crate::lmu::{LmuEvent, LmuUpdate};
+use crate::lmu::{AdapterName, LmuEvent, LmuUpdate};
 
 use super::input::IncidentFields;
 use super::rules::{is_new_session, resolve_lmu_cars};
@@ -15,17 +15,31 @@ use super::service::Draft;
 pub struct LmuOutcome {
     pub live_changed: bool,
     pub incidents_changed: bool,
+    pub team_changed: bool,
 }
 
 impl Core {
+    /// While a teammate streams this session, their timing is the clock here: this PC's own
+    /// source neither moves it nor logs contacts (the streaming PC does, once for everyone).
     pub fn apply_lmu(&mut self, event: LmuEvent) -> LmuOutcome {
-        match event {
+        if self.watching() {
+            return LmuOutcome::default();
+        }
+        let outcome = match event {
             LmuEvent::Disconnected => {
                 self.session.connected = false;
-                LmuOutcome { live_changed: true, incidents_changed: false }
+                LmuOutcome { live_changed: true, ..LmuOutcome::default() }
             }
             LmuEvent::Update(update) => self.apply_update(update),
-        }
+        };
+        self.offer_frame();
+        outcome
+    }
+
+    /// The simulator's invented grid never reaches a league from a release build: a steward
+    /// who forgot to switch to the game mustn't fill the team's session with fake contacts.
+    pub(crate) fn feeds_league(&self) -> bool {
+        self.link().is_none() || self.adapter() == AdapterName::Rest || cfg!(debug_assertions)
     }
 
     /// Archive-then-ingest, in that order: the archive resets the sequence, so this tick's
@@ -33,8 +47,13 @@ impl Core {
     /// session lands in the archive folder.
     fn apply_update(&mut self, update: LmuUpdate) -> LmuOutcome {
         let mut incidents_changed = false;
+        let mut team_changed = false;
         if let Some(previous) = self.last_session.replace(update.session.clone()) {
-            if is_new_session(&previous, &update.session) {
+            if is_new_session(&previous, &update.session) && self.link().is_some() {
+                // The league's session holds these incidents; the next one is opened on purpose.
+                self.team.notice = Some("LMU started a new session: open a new one on the Team page".into());
+                team_changed = true;
+            } else if is_new_session(&previous, &update.session) {
                 eprintln!(
                     "[incidents] New LMU session ({}), archiving {}",
                     update.session.track_name, previous.track_name
@@ -47,8 +66,8 @@ impl Core {
         }
         self.session = update.session;
         self.standings = update.standings;
-        let created = self.ingest(&update.collisions);
-        LmuOutcome { live_changed: true, incidents_changed: incidents_changed || created > 0 }
+        let created = if self.feeds_league() { self.ingest(&update.collisions) } else { 0 };
+        LmuOutcome { live_changed: true, incidents_changed: incidents_changed || created > 0, team_changed }
     }
 
     /// The feed is cumulative — skip anything already turned into an incident.

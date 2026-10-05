@@ -27,7 +27,7 @@ pub fn export_csv(state: State<AppState>, variant: CsvVariant, delimiter: CsvDel
     build_export(&state.lock(), variant, delimiter)
 }
 
-fn save_as(path: &Path, extension: &str, content: &str) -> AppResult<()> {
+pub(crate) fn save_as(path: &Path, extension: &str, content: &str) -> AppResult<()> {
     if !path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case(extension)) {
         return Err(AppError::invalid(format!("this file is saved as .{extension}")));
     }

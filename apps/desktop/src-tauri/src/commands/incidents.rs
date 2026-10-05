@@ -6,13 +6,15 @@ use std::path::PathBuf;
 use serde::Serialize;
 use tauri::{AppHandle, State};
 
-use crate::app::{emit, emit_incidents, AppState};
+use crate::account::AccountView;
+use crate::app::{emit, emit_incidents, emit_team, AppState};
 use crate::core::Core;
 use crate::domain::{Incident, SessionInfo, StandingEntry};
 use crate::error::AppResult;
 use crate::incidents::input::{IncidentFields, MergeInput, QuickLogInput};
 use crate::settings::AppConfig;
 use crate::share::ImportReport;
+use crate::team::TeamView;
 
 /// Everything the UI needs on start — so the window isn't blank until the next tick.
 #[derive(Serialize)]
@@ -22,13 +24,19 @@ pub struct Snapshot {
     standings: Vec<StandingEntry>,
     incidents: Vec<Incident>,
     config: AppConfig,
+    account: AccountView,
+    team: TeamView,
 }
 
-/// Runs an incident mutation, then pushes the new list to every window.
+/// Runs an incident mutation, then pushes the new list (and, in a league, the changes waiting
+/// to be sent) to every window.
 fn mutate<T>(app: &AppHandle, state: &State<AppState>, op: impl FnOnce(&mut Core) -> AppResult<T>) -> AppResult<T> {
     let mut core = state.lock();
     let result = op(&mut core)?;
     emit_incidents(app, &core);
+    if core.link().is_some() {
+        emit_team(app, &core);
+    }
     Ok(result)
 }
 
@@ -40,6 +48,8 @@ pub fn get_snapshot(state: State<AppState>) -> Snapshot {
         standings: core.standings.clone(),
         incidents: core.list(),
         config: core.config(),
+        account: core.account.view(),
+        team: core.team_view(),
     }
 }
 
@@ -105,6 +115,7 @@ pub fn merge_incidents(app: AppHandle, state: State<AppState>, input: MergeInput
 #[tauri::command]
 pub fn archive_session(app: AppHandle, state: State<AppState>) -> AppResult<()> {
     mutate(&app, &state, |core| {
+        core.check_solo("Clearing the session")?;
         let track = core.session.track_name.clone();
         core.archive(&track)
     })
@@ -120,5 +131,8 @@ pub fn flush_session(state: State<AppState>) -> AppResult<()> {
 /// Merges other stewards' session files into this session; the UI shows the report.
 #[tauri::command]
 pub fn import_sessions(app: AppHandle, state: State<AppState>, paths: Vec<PathBuf>) -> AppResult<ImportReport> {
-    mutate(&app, &state, |core| core.import_sessions(&paths))
+    mutate(&app, &state, |core| {
+        core.check_solo("Importing session files")?;
+        core.import_sessions(&paths)
+    })
 }

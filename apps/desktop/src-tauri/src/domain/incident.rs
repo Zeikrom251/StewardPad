@@ -139,4 +139,14 @@ pub struct Incident {
     pub reviewed_by: Option<String>,
     pub created_at: String,
     pub updated_at: String,
+    /// The league's version of it (team sync): 0 while it exists on this PC only.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub version: u32,
+    /// Two stewards changed the same field: this PC's newer edit was kept.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub edited_twice: bool,
+}
+
+fn is_zero(value: &u32) -> bool {
+    *value == 0
 }

@@ -27,6 +27,8 @@ pub fn incident(id: &str, sequence_number: u32) -> Incident {
         reviewed_by: None,
         created_at: "2026-09-28T09:00:00.000Z".into(),
         updated_at: "2026-09-28T09:00:00.000Z".into(),
+        version: 0,
+        edited_twice: false,
     }
 }
 

@@ -2,6 +2,7 @@
 
 mod ingest;
 pub mod input;
+mod merge;
 pub mod rules;
 mod service;
 

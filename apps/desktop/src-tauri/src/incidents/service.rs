@@ -1,12 +1,13 @@
 //! Incident operations — the port of IncidentsService. Each mutation saves (debounced);
 //! the command layer emits `incidents:update` afterwards.
 
+use crate::api::wire::LeagueRole;
 use crate::core::Core;
 use crate::domain::{Incident, IncidentSource, IncidentStatus, IncidentType, InvolvedCar};
 use crate::error::{AppError, AppResult};
 use crate::text::UtcTime;
 
-use super::input::{IncidentFields, MergeInput, QuickLogInput};
+use super::input::{IncidentFields, QuickLogInput};
 use super::rules::*;
 
 /// What an incident is created from; editable extras arrive in `fields`.
@@ -33,6 +34,7 @@ impl Core {
 
     /// Cars only — look-back and every other field are server-side defaults (§7.3).
     pub fn quick_log(&mut self, input: QuickLogInput) -> AppResult<Incident> {
+        self.check_team_write(None)?;
         let logged_at = self.session.elapsed_seconds;
         let lookback = f64::from(self.store.config.lookback_seconds);
         let draft = Draft {
@@ -40,7 +42,7 @@ impl Core {
             logged_at_seconds: logged_at,
             cars: resolve_manual_cars(&input.slot_ids, &self.standings),
             kind: IncidentType::Other,
-            logged_by: input.logged_by.unwrap_or_else(|| self.store.config.steward_name.clone()),
+            logged_by: input.logged_by.unwrap_or_else(|| self.steward_name()),
             source: IncidentSource::Steward,
             lmu_key: None,
             fields: IncidentFields::default(),
@@ -51,13 +53,14 @@ impl Core {
     /// "Log a missed incident": the steward types the time, so no look-back is applied.
     pub fn create(&mut self, fields: IncidentFields) -> AppResult<Incident> {
         fields.validate()?;
+        self.check_team_write(None)?;
         let logged_at = self.session.elapsed_seconds;
         let draft = Draft {
             event_seconds: fields.event_seconds.unwrap_or(logged_at),
             logged_at_seconds: logged_at,
             cars: fields.cars.clone().unwrap_or_default(),
             kind: fields.kind.unwrap_or(IncidentType::Other),
-            logged_by: fields.logged_by.clone().unwrap_or_else(|| self.store.config.steward_name.clone()),
+            logged_by: fields.logged_by.clone().unwrap_or_else(|| self.steward_name()),
             source: IncidentSource::Steward,
             lmu_key: None,
             fields,
@@ -69,6 +72,7 @@ impl Core {
     /// lookbackApplied — that records what happened at the keypress (§7.3).
     pub fn update(&mut self, id: &str, fields: IncidentFields) -> AppResult<Incident> {
         fields.validate()?;
+        self.check_team_write(None)?;
         let before = self.get(id)?;
         let mut incident = before.clone();
         let previous_lap = lap_from_replay_reference(&incident.replay_reference);
@@ -80,67 +84,38 @@ impl Core {
         if incident == before {
             return Ok(before);
         }
-        let steward = self.store.config.steward_name.trim();
+        let steward = self.steward_name();
         if !steward.is_empty() {
-            incident.reviewed_by = Some(steward.to_string());
+            incident.reviewed_by = Some(steward);
         }
         let lap = incident.cars.first().and_then(|c| c.lap_at_incident).unwrap_or(previous_lap);
         incident.replay_reference = build_replay_reference(self.session.session_type, incident.event_seconds, lap);
         incident.updated_at = UtcTime::now().iso();
         self.store.save(incident.clone());
+        self.record_edited(&before, &incident);
         self.changed();
         Ok(incident)
     }
 
-    /// Folds ≥2 incidents into one primary. Children stay stored (audit trail) with
-    /// mergedIntoId set; the primary gains their cars. Status/decision are untouched.
-    pub fn merge(&mut self, input: MergeInput) -> AppResult<Incident> {
-        input.validate()?;
-        let incidents = input.incident_ids.iter().map(|id| self.get(id)).collect::<AppResult<Vec<_>>>()?;
-        if let Some(child) = incidents.iter().find(|i| i.merged_into_id.is_some()) {
-            return Err(AppError::invalid(format!(
-                "Incident #{} is already merged into another incident. To expand a merge group, \
-                 include the primary incident and the new incidents together",
-                child.sequence_number
-            )));
-        }
-        let mut primary = select_primary(&incidents, input.primary_id.as_deref())
-            .cloned()
-            .ok_or_else(|| AppError::invalid("primaryId not found"))?;
-        let children: Vec<&Incident> = incidents.iter().filter(|i| i.id != primary.id).collect();
-        let now = UtcTime::now().iso();
-        let with_primary_first: Vec<&Incident> = std::iter::once(&primary).chain(children.iter().copied()).collect();
-        let cars = merge_cars(&with_primary_first);
-        primary.cars = cars;
-        primary.merged_from_ids.extend(children.iter().map(|c| c.id.clone()));
-        primary.updated_at = now.clone();
-        for child in children {
-            self.store.save(Incident {
-                merged_into_id: Some(primary.id.clone()),
-                updated_at: now.clone(),
-                ..child.clone()
-            });
-        }
-        self.store.save(primary.clone());
-        self.changed();
-        Ok(primary)
-    }
-
     pub fn remove(&mut self, id: &str) -> AppResult<()> {
+        self.check_team_write(Some(LeagueRole::HeadSteward))?;
         if !self.store.delete(id) {
             return Err(AppError::not_found(format!("Incident {id} not found")));
         }
+        self.record_deleted(id);
         self.changed();
         Ok(())
     }
 
     /// Deletes several incidents as one change. If any id is unknown, none is deleted.
     pub fn remove_many(&mut self, ids: &[String]) -> AppResult<()> {
+        self.check_team_write(Some(LeagueRole::HeadSteward))?;
         if let Some(missing) = ids.iter().find(|id| self.store.get(id).is_none()) {
             return Err(AppError::not_found(format!("Incident {missing} not found")));
         }
         for id in ids {
             self.store.delete(id);
+            self.record_deleted(id);
         }
         self.changed();
         Ok(())
@@ -174,8 +149,11 @@ impl Core {
             reviewed_by: fields.reviewed_by.clone().flatten(),
             created_at: now.clone(),
             updated_at: now,
+            version: 0,
+            edited_twice: false,
         };
         self.store.save(incident.clone());
+        self.record_created(&incident);
         self.changed();
         incident
     }

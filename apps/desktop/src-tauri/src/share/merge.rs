@@ -74,6 +74,8 @@ fn same_content(a: &Incident, b: &Incident) -> bool {
         replay_reference: String::new(),
         created_at: String::new(),
         updated_at: String::new(),
+        version: 0,
+        edited_twice: false,
         ..i.clone()
     };
     blank(a) == blank(b)

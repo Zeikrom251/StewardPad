@@ -1,17 +1,21 @@
-//! Startup wiring: restore the session file, start the saver and the LMU adapter, and hand
-//! the shared core to Tauri.
+//! Startup wiring: restore the session file, start the saver and the LMU adapter, hand the
+//! shared core to Tauri, then restore the account (Team) and listen for stewardpad:// links.
 
 mod events;
+pub mod links;
 mod state;
 
 use std::sync::{Arc, Mutex};
 
 use tauri::Manager;
 
+use crate::account::{service as account, vault};
+use crate::api::Api;
 use crate::core::Core;
 use crate::store::{disk, Paths, Saver, Store};
+use crate::team::engine::Engine;
 
-pub use events::{emit, emit_incidents};
+pub use events::{emit, emit_account, emit_incidents, emit_live, emit_team};
 pub use state::AppState;
 use state::{lock, start_adapter, SharedCore};
 
@@ -39,6 +43,9 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     let lmu = Mutex::new(start_adapter(app.handle(), &core, adapter));
-    app.manage(AppState { core, lmu });
+    vault::init();
+    app.manage(AppState { core, lmu, api: Api::new(), engine: Mutex::new(Engine::default()) });
+    account::restore(app.handle());
+    links::listen(app);
     Ok(())
 }
