@@ -22,6 +22,8 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       onBackendEvent('standings:update', (standings) => patch({ standings })),
       onBackendEvent('incidents:update', (incidents) => patch({ incidents })),
       onBackendEvent('config:update', (config) => patch({ config })),
+      onBackendEvent('account:update', (account) => patch({ account })),
+      onBackendEvent('team:update', (team) => patch({ team })),
     ]
     backend
       .snapshot()

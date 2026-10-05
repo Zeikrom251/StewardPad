@@ -66,7 +66,17 @@ export function ReportsPage() {
         </div>
         <StatusTiles incidents={live.incidents} />
         <ExportCards live={live} delimiter={delimiter} />
-        <TeamSession />
+        {live.team.leagueId ? (
+          <div className={ui.warnbox}>
+            <Icon name="cloud" size={16} />
+            <span>
+              This session syncs with <b>{live.team.leagueName}</b>: every steward already has every
+              incident, so there are no session files to exchange.
+            </span>
+          </div>
+        ) : (
+          <TeamSession />
+        )}
         <div className={ui.warnbox}>
           <Icon name="alert" size={16} />
           <span>

@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
+  AccountView,
   AdapterName,
   AppConfig,
   CreateIncidentInput,
@@ -13,6 +14,7 @@ import type {
   ServerEvents,
   SessionInfo,
   StandingEntry,
+  TeamView,
   UpdateConfigInput,
   UpdateIncidentInput,
 } from '@stewardpad/shared'
@@ -27,12 +29,16 @@ export interface Snapshot {
   standings: StandingEntry[]
   incidents: Incident[]
   config: AppConfig
+  account: AccountView
+  team: TeamView
 }
 
 /** What a failed command rejects with (src-tauri/src/error.rs). */
 export interface BackendError {
-  kind: 'notFound' | 'invalid' | 'io'
+  kind: 'notFound' | 'invalid' | 'io' | 'offline' | 'signedOut' | 'refused'
   message: string
+  /** The StewardPad API's rule, when it refused (STREAM_TAKEN, OWNS_LEAGUES…). */
+  code?: string
 }
 
 export interface CsvExport {
@@ -109,6 +115,10 @@ export interface AnnouncementDue {
 /** The Socket.IO events of the old server, plus the desktop app's own. */
 interface DesktopEvents extends ServerEvents {
   'announcement:due': AnnouncementDue
+  /** A stewardpad://signed-in link arrived but the code was refused. */
+  'account:failed': { message: string }
+  /** A stewardpad://join link arrived: show the invite before joining. */
+  'join:requested': { invite: string }
 }
 
 export function onBackendEvent<K extends keyof DesktopEvents>(

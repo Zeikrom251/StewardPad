@@ -1,0 +1,47 @@
+.modal {
+  width: min(520px, 100% - 64px);
+  margin: auto;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 70%, transparent);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+
+  &::backdrop {
+    background: rgba(6, 8, 11, 0.62);
+  }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px 22px 6px 28px;
+
+  h2 {
+    font: 600 20px var(--font-ui);
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 28px 22px;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 28px;
+  border-top: 1px solid var(--color-border);
+}

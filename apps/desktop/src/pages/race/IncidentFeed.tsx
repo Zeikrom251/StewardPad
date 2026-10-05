@@ -7,6 +7,7 @@ import { TYPE_LABEL } from '../../lib/labels'
 import { Kbd, Plate, SourceTag, StatusChip, cx } from '../../ui/primitives'
 import ui from '../../ui/ui.module.scss'
 import { useWorkspace } from '../../workspace/Workspace'
+import { Attribution } from '../../team/Attribution'
 import styles from './IncidentFeed.module.scss'
 
 export function FeedItem({
@@ -41,6 +42,7 @@ export function FeedItem({
           ))}
         </span>
       )}
+      <Attribution incident={incident} />
     </button>
   )
 }

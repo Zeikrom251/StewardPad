@@ -76,3 +76,61 @@
     background: color-mix(in srgb, var(--color-status-under-investigation) 20%, transparent);
   }
 }
+
+// Team (board 05): the league, the stewards here now, and this PC's stream.
+.league {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 320px;
+  margin-right: 14px;
+  white-space: nowrap;
+  font: 500 13px var(--font-ui);
+  color: var(--color-text);
+
+  > i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-text-faint);
+  }
+
+  > i[data-live] {
+    background: var(--color-status-no-further-action);
+  }
+}
+
+.faces {
+  display: inline-flex;
+  margin-left: 4px;
+
+  > span {
+    margin-left: -6px;
+    box-shadow: 0 0 0 2px var(--color-surface);
+  }
+}
+
+.streaming {
+  composes: simulator;
+  white-space: nowrap;
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
+
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+.leagueName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

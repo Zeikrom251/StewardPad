@@ -77,3 +77,38 @@
     text-decoration: underline;
   }
 }
+
+.item[data-link='streaming'] {
+  color: var(--color-text);
+  --dot: var(--color-accent);
+}
+
+.sync {
+  composes: item;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+
+  &[data-tone='good'] {
+    color: var(--color-status-no-further-action);
+  }
+
+  &[data-tone='busy'] {
+    color: var(--color-status-noted);
+  }
+
+  &[data-tone='warn'] {
+    color: var(--color-status-under-investigation);
+  }
+
+  &[data-tone='off'] {
+    color: var(--color-text-muted);
+  }
+}
+
+.teamNotice {
+  composes: notice;
+  color: var(--color-status-under-investigation);
+}

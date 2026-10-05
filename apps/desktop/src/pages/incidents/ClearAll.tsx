@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { backend } from '../../backend/backend'
+import { useLive } from '../../backend/LiveProvider'
 import { Icon } from '../../icons'
 import { cx } from '../../ui/primitives'
 import ui from '../../ui/ui.module.scss'
@@ -35,10 +36,15 @@ function ConfirmClear({
   )
 }
 
-/** Clear all = archive a snapshot, then empty the list. Asks once more, in place. */
+/**
+ * Clear all = archive a snapshot, then empty the list. Asks once more, in place. Not in a
+ * league: its session lives on the server, and a head steward closes it on the Team page.
+ */
 export function ClearAll({ count }: { count: number }) {
   const { openIncident, report } = useWorkspace()
   const [armed, setArmed] = useState(false)
+  const linked = Boolean(useLive()?.team.leagueId)
+  if (linked) return null
   const clear = () => {
     setArmed(false)
     backend

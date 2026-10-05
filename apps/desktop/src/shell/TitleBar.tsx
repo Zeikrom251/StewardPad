@@ -5,6 +5,7 @@ import { Icon, type IconName } from '../icons'
 import { useLive } from '../backend/LiveProvider'
 import { useWorkspace } from '../workspace/Workspace'
 import { SessionClock, SessionLabel } from './SessionClock'
+import { TeamPresence } from './TeamPresence'
 import styles from './TitleBar.module.scss'
 
 // Window controls only exist inside Tauri; in a plain browser (vite dev) they're hidden.
@@ -40,21 +41,27 @@ function WindowButton({
  * Custom title bar (decorations are off in tauri.conf.json). Empty areas carry
  * data-tauri-drag-region so the window drags and double-click maximises; the
  * attribute applies to the element itself only, so each passive container has it.
+ * `minimal`: the full-window screens before the race show the brand and the window buttons only.
  */
-export function TitleBar() {
+export function TitleBar({ minimal = false }: { minimal?: boolean }) {
   const appWindow = inTauri ? getCurrentWindow() : null
-  const simulated = useLive()?.config.adapter === 'mock'
+  const simulated = useLive()?.config.adapter === 'mock' && !minimal
   const { go } = useWorkspace()
   return (
     <header className={styles.bar} data-tauri-drag-region>
       <div className={styles.side} data-tauri-drag-region>
         <Mark size={20} />
         <Wordmark size={14} />
-        <span className={styles.divider} />
-        <SessionLabel />
+        {!minimal && (
+          <>
+            <span className={styles.divider} />
+            <SessionLabel />
+          </>
+        )}
       </div>
-      <SessionClock />
+      {!minimal && <SessionClock />}
       <div className={styles.sideEnd} data-tauri-drag-region>
+        {!minimal && <TeamPresence />}
         {simulated && (
           <button
             type="button"

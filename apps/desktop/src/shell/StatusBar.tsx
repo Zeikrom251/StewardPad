@@ -5,6 +5,7 @@ import { useUpdater } from '../update/UpdaterProvider'
 import { Kbd } from '../ui/primitives'
 import { useWorkspace } from '../workspace/Workspace'
 import styles from './StatusBar.module.scss'
+import { StreamSource, SyncItem, TeamNotice } from './SyncItems'
 
 type Link = 'starting' | 'simulator' | 'connected' | 'offline'
 
@@ -51,18 +52,26 @@ export function StatusBar() {
   const { notice } = useWorkspace()
   const link = linkState(live)
   const open = live?.incidents.filter((i) => i.status === 'UNDER_INVESTIGATION').length ?? 0
+  const team = live?.team
+  const fromStream = team && (team.streaming || team.watching)
   return (
     <footer className={styles.bar}>
-      <span className={styles.item} data-link={link}>
-        <i className={styles.dot} />
-        {LINK_LABEL[link]}
-      </span>
+      {fromStream ? (
+        <StreamSource view={team} />
+      ) : (
+        <span className={styles.item} data-link={link}>
+          <i className={styles.dot} />
+          {LINK_LABEL[link]}
+        </span>
+      )}
+      {team && <SyncItem view={team} />}
       {notice && (
         <span className={styles.notice} role="alert">
           <Icon name="alert" size={12} />
           {notice}
         </span>
       )}
+      {team && !notice && <TeamNotice view={team} />}
       {live && !notice && (
         <span className={styles.item}>
           {live.incidents.length} {live.incidents.length === 1 ? 'incident' : 'incidents'}
