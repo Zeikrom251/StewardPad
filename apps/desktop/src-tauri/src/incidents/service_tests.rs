@@ -100,6 +100,7 @@ fn merge_folds_children_into_the_lowest_numbered_primary() {
     assert_eq!(merged.id, first.id);
     assert_eq!(merged.cars.len(), 2);
     assert_eq!(core.list().len(), 1, "the child is hidden from the list");
+    assert_eq!(core.listed()[0].merged_from_numbers, vec![2], "the primary names it instead");
     let again = core.merge(MergeInput { incident_ids: vec![second.id.clone(), first.id], primary_id: None });
     assert!(again.is_err(), "a merged child can't be merged again");
 }

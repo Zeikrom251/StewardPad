@@ -14,7 +14,7 @@ pub fn emit<T: Serialize + Clone>(app: &AppHandle, event: &str, payload: &T) {
 }
 
 pub fn emit_incidents(app: &AppHandle, core: &Core) {
-    emit(app, "incidents:update", &core.list());
+    emit(app, "incidents:update", &core.listed());
 }
 
 pub fn emit_live(app: &AppHandle, core: &Core) {
