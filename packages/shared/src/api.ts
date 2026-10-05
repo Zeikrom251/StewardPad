@@ -5,6 +5,7 @@
 
 import type { Incident, IncidentStatus, RuleRef } from './incident.js'
 import type { SessionInfo, StandingEntry } from './lmu.js'
+import type { AccountView, TeamView } from './team.js'
 
 export type AdapterName = 'mock' | 'rest'
 
@@ -95,6 +96,8 @@ export interface AppConfig {
   display?: DisplayPrefs
   /** Desktop app only. */
   discord?: DiscordSettings
+  /** Desktop app only: the welcome screen (Team or on your own) was answered. */
+  welcomed?: boolean
 }
 
 /** Every field the steward may edit. The server owns the rest. */
@@ -129,7 +132,13 @@ export interface QuickLogInput {
 export type UpdateConfigInput = Partial<
   Pick<
     AppConfig,
-    'lookbackSeconds' | 'stewardName' | 'archiveDir' | 'exportDir' | 'display' | 'discord'
+    | 'lookbackSeconds'
+    | 'stewardName'
+    | 'archiveDir'
+    | 'exportDir'
+    | 'display'
+    | 'discord'
+    | 'welcomed'
   >
 >
 
@@ -151,4 +160,6 @@ export interface ServerEvents {
   'standings:update': StandingEntry[]
   'incidents:update': Incident[]
   'config:update': AppConfig
+  'account:update': AccountView
+  'team:update': TeamView
 }

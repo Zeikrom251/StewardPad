@@ -102,4 +102,8 @@ export interface Incident {
   reviewedBy: string | null
   createdAt: string
   updatedAt: string
+  /** Team: the league's version of it; absent while it exists on this PC only. */
+  version?: number
+  /** Team: two stewards changed the same field and this PC's newer edit was kept. */
+  editedTwice?: boolean
 }
