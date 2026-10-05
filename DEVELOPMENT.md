@@ -36,7 +36,7 @@ Keep `cargo clippy --all-targets -- -D warnings` clean as well: CI fails on a wa
 | `scripts/`          | —                     | `discover-lmu.ts`, the LMU probe; `run-tests.mjs`             |
 | `.github/workflows` | —                     | `ci.yml` on every pull request, `release.yml` on a release    |
 
-Shared types are defined once in `packages/shared`, never duplicated; `src-tauri/src/domain.rs`
+Shared types are defined once in `packages/shared`, never duplicated; `src-tauri/src/domain/`
 mirrors them, so change both together. The website, with the release notes it shows, lives in
 its own repository (stewardpad.com); it keeps a copy of `packages/brand`. There is no database, no
 authentication and no server to deploy: this is a local tool on a trusted machine.
@@ -44,8 +44,24 @@ authentication and no server to deploy: this is a local tool on a trusted machin
 ## How the desktop app works
 
 The backend is Rust (`apps/desktop/src-tauri/src`). Each operation is a Tauri command
-(`commands.rs`), and the backend pushes changes to the UI as events (`session:update`,
+(`commands/`), and the backend pushes changes to the UI as events (`session:update`,
 `standings:update`, `incidents:update`, `config:update`).
+
+| Folder       | What it holds                                                                 |
+| ------------ | ----------------------------------------------------------------------------- |
+| `app/`       | Startup, the shared state behind its lock, the events pushed to the UI        |
+| `commands/`  | The Tauri commands, one file per area; thin: parse, call the core, emit       |
+| `core.rs`    | `Core`: the store plus the live session and standings                         |
+| `domain/`    | The wire types the UI sees (mirror of `packages/shared`)                      |
+| `incidents/` | Incident inputs, rules and operations, and LMU contacts turned into incidents |
+| `lmu/`       | The LMU adapter boundary: the REST adapter and the simulator                  |
+| `settings/`  | The config the steward edits: display, Discord announcements, folders         |
+| `store/`     | The session file: atomic writes, restore, the debounced saver                 |
+| `export/`    | The CSVs and the results JSON                                                 |
+| `rulebook/`  | The league's rule book: parsing, checking, numbering outlines                 |
+| `share/`     | Session files exchanged between stewards, and their merge rules               |
+
+Tests sit beside the file they test, as `<file>_tests.rs`.
 
 **The LMU adapter.** Everything that talks to the game sits behind one adapter, with two
 implementations: the REST adapter, which polls the game, and the simulator, which invents a grid.

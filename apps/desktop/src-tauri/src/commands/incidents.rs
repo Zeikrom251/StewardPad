@@ -7,12 +7,11 @@ use serde::Serialize;
 use tauri::{AppHandle, State};
 
 use crate::app::{emit, emit_incidents, AppState};
-use crate::core::{AppConfig, Core};
+use crate::core::Core;
 use crate::domain::{Incident, SessionInfo, StandingEntry};
-use crate::error::{AppError, AppResult};
-use crate::incidents::input::{ConfigInput, IncidentFields, MergeInput, QuickLogInput};
-use crate::lmu::AdapterName;
-use crate::rulebook::{check_rules, edited_rulebook, number_if_outline, read_rulebook, RulebookCheck};
+use crate::error::AppResult;
+use crate::incidents::input::{IncidentFields, MergeInput, QuickLogInput};
+use crate::settings::AppConfig;
 use crate::share::ImportReport;
 
 /// Everything the UI needs on start — so the window isn't blank until the next tick.
@@ -116,59 +115,6 @@ pub fn archive_session(app: AppHandle, state: State<AppState>) -> AppResult<()> 
 #[tauri::command]
 pub fn flush_session(state: State<AppState>) -> AppResult<()> {
     state.lock().flush()
-}
-
-/// Settings → Rule book: reads a text/Markdown file; its numbered lines become the rules.
-#[tauri::command]
-pub fn import_rulebook(app: AppHandle, state: State<AppState>, path: PathBuf) -> AppResult<AppConfig> {
-    let rulebook = read_rulebook(&path)?;
-    let config = state.lock().set_rulebook(Some(rulebook));
-    emit(&app, "config:update", &config);
-    Ok(config)
-}
-
-/// Rules page → Edit, while typing: every line that breaks the structure.
-#[tauri::command]
-pub fn check_rulebook(text: String) -> RulebookCheck {
-    check_rules(&text)
-}
-
-/// Rules page → Edit → "Number it": full rule numbers for a pasted Google Docs / Word list.
-#[tauri::command]
-pub fn number_rulebook(text: String) -> String {
-    number_if_outline(&text)
-}
-
-/// Rules page → Edit → Save: the edited Markdown replaces the book if it has no problem.
-#[tauri::command]
-pub fn save_rulebook(app: AppHandle, state: State<AppState>, text: String) -> AppResult<AppConfig> {
-    let mut core = state.lock();
-    let name =
-        core.config().rulebook.map(|book| book.name).ok_or_else(|| AppError::invalid("Import a rule book first"))?;
-    let config = core.set_rulebook(Some(edited_rulebook(name, text)?));
-    drop(core);
-    emit(&app, "config:update", &config);
-    Ok(config)
-}
-
-#[tauri::command]
-pub fn remove_rulebook(app: AppHandle, state: State<AppState>) -> AppConfig {
-    let config = state.lock().set_rulebook(None);
-    emit(&app, "config:update", &config);
-    config
-}
-
-/// Settings → Data source. Takes effect at once and is saved with the session.
-#[tauri::command]
-pub fn set_adapter(app: AppHandle, state: State<AppState>, adapter: AdapterName) -> AppConfig {
-    state.switch_adapter(&app, adapter)
-}
-
-#[tauri::command]
-pub fn update_config(app: AppHandle, state: State<AppState>, input: ConfigInput) -> AppResult<AppConfig> {
-    let config = state.lock().update_config(input)?;
-    emit(&app, "config:update", &config);
-    Ok(config)
 }
 
 /// Merges other stewards' session files into this session; the UI shows the report.

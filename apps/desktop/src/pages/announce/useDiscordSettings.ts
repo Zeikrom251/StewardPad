@@ -35,7 +35,7 @@ const WEBHOOK_HOSTS = [
   'https://canary.discord.com/api/webhooks/',
 ]
 
-/** The same check as discord.rs, to say so while typing rather than on save. */
+/** The same check as settings/discord.rs, to say so while typing rather than on save. */
 export const isWebhookUrl = (url: string) =>
   WEBHOOK_HOSTS.some((host) => url.trim().startsWith(host))
 

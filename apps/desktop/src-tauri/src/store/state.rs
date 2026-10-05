@@ -5,11 +5,10 @@ use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::discord::DiscordSettings;
-use crate::display::DisplayPrefs;
 use crate::domain::Incident;
 use crate::lmu::AdapterName;
 use crate::rulebook::Rulebook;
+use crate::settings::{DiscordSettings, DisplayPrefs};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[serde(rename_all = "camelCase")]

@@ -1,15 +1,13 @@
 mod app;
 mod commands;
 mod core;
-mod discord;
-mod display;
 mod domain;
 mod error;
 mod export;
-mod export_commands;
 mod incidents;
 mod lmu;
 mod rulebook;
+mod settings;
 mod share;
 mod store;
 #[cfg(test)]
@@ -35,30 +33,30 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(app::setup)
         .invoke_handler(tauri::generate_handler![
-            commands::get_snapshot,
-            commands::get_incident,
-            commands::quick_log,
-            commands::create_incident,
-            commands::update_incident,
-            commands::delete_incident,
-            commands::delete_incidents,
-            commands::merge_incidents,
-            commands::archive_session,
-            commands::flush_session,
-            commands::update_config,
-            commands::set_adapter,
-            commands::import_rulebook,
-            commands::remove_rulebook,
-            commands::check_rulebook,
-            commands::number_rulebook,
-            commands::save_rulebook,
-            export_commands::save_markdown,
-            export_commands::export_csv,
-            export_commands::save_csv,
-            export_commands::save_session_file,
-            export_commands::save_results_json,
-            export_commands::save_html,
-            commands::import_sessions,
+            commands::incidents::get_snapshot,
+            commands::incidents::get_incident,
+            commands::incidents::quick_log,
+            commands::incidents::create_incident,
+            commands::incidents::update_incident,
+            commands::incidents::delete_incident,
+            commands::incidents::delete_incidents,
+            commands::incidents::merge_incidents,
+            commands::incidents::archive_session,
+            commands::incidents::flush_session,
+            commands::incidents::import_sessions,
+            commands::settings::update_config,
+            commands::settings::set_adapter,
+            commands::rulebook::import_rulebook,
+            commands::rulebook::remove_rulebook,
+            commands::rulebook::check_rulebook,
+            commands::rulebook::number_rulebook,
+            commands::rulebook::save_rulebook,
+            commands::exports::save_markdown,
+            commands::exports::export_csv,
+            commands::exports::save_csv,
+            commands::exports::save_session_file,
+            commands::exports::save_results_json,
+            commands::exports::save_html,
         ])
         .run(tauri::generate_context!())
         .expect("error while running StewardPad");

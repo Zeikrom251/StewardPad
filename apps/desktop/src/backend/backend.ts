@@ -18,7 +18,7 @@ import type {
 } from '@stewardpad/shared'
 
 /**
- * The Rust backend (src-tauri/src/commands.rs). Same operations and payloads as the old
+ * The Rust backend (src-tauri/src/commands/). Same operations and payloads as the old
  * NestJS REST API; events keep the Socket.IO names (ServerEvents).
  */
 

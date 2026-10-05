@@ -1,6 +1,4 @@
-//! Domain types — the Rust mirror of `packages/shared` (incident.ts, lmu.ts, api.ts).
-//! Field names and enum spellings are the wire contract with the React app:
-//! camelCase fields, SCREAMING_SNAKE enum values. Change both sides together.
+//! Incidents and what they hold: cars, penalty, rules.
 
 use serde::{Deserialize, Serialize};
 
@@ -141,86 +139,4 @@ pub struct Incident {
     pub reviewed_by: Option<String>,
     pub created_at: String,
     pub updated_at: String,
-}
-
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum SessionType {
-    Practice,
-    Qualifying,
-    Race,
-    Unknown,
-}
-
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum SessionPhase {
-    Green,
-    Yellow,
-    Fcy,
-    SafetyCar,
-    Red,
-    Finished,
-    Unknown,
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct SessionInfo {
-    pub connected: bool,
-    pub session_type: SessionType,
-    pub session_phase: SessionPhase,
-    /// Canonical timestamp source for every incident, float seconds.
-    pub elapsed_seconds: f64,
-    pub remaining_seconds: Option<f64>,
-    pub track_name: String,
-    pub server_name: Option<String>,
-}
-
-impl SessionInfo {
-    /// Before the first LMU update arrives.
-    pub fn disconnected() -> Self {
-        Self {
-            connected: false,
-            session_type: SessionType::Unknown,
-            session_phase: SessionPhase::Unknown,
-            elapsed_seconds: 0.0,
-            remaining_seconds: None,
-            track_name: String::new(),
-            server_name: None,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct StandingEntry {
-    /// LMU slotID — unique per car for the session. Car numbers are NOT unique,
-    /// so this, never carNumber, is the identity for keys and lookups.
-    pub slot_id: i64,
-    pub position: i64,
-    pub position_in_class: i64,
-    pub car_number: String,
-    pub driver_name: String,
-    pub team_name: String,
-    /// HYPERCAR | LMP2 | LMGT3 | ...
-    pub car_class: String,
-    pub laps_completed: i64,
-    pub gap_to_leader: String,
-    pub last_lap_seconds: Option<f64>,
-    pub best_lap_seconds: Option<f64>,
-    pub sector1: Option<f64>,
-    pub sector2: Option<f64>,
-    pub sector3: Option<f64>,
-    pub top_speed_kph: Option<f64>,
-    pub in_pit: bool,
-    pub pit_stops: i64,
-}
-
-/// The wire enum's name (e.g. "RACE", "UNDER_INVESTIGATION") — used in CSV cells and replay references.
-pub fn wire_name<T: Serialize>(value: &T) -> String {
-    match serde_json::to_value(value) {
-        Ok(serde_json::Value::String(name)) => name,
-        _ => String::new(),
-    }
 }
