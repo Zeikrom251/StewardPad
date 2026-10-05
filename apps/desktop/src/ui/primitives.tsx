@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { IncidentSource, IncidentStatus } from '@stewardpad/shared'
+import type { Incident, IncidentSource, IncidentStatus } from '@stewardpad/shared'
 import { Icon } from '../icons'
 import { STATUS, classLabel } from '../lib/labels'
 import styles from './primitives.module.scss'
@@ -51,6 +51,31 @@ export function ClassTag({ carClass }: { carClass: string }) {
 
 export function SourceTag({ source }: { source: IncidentSource }) {
   return <span className={styles.tag}>{source}</span>
+}
+
+/** On an incident others were merged into: their numbers. */
+export function MergedTag({ incident }: { incident: Incident }) {
+  const numbers = incident.mergedFromNumbers ?? []
+  if (numbers.length === 0) return null
+  const list = numbers.map((n) => `#${n}`).join(' ')
+  return (
+    <span className={styles.tag} title={`Merged from ${list}`}>
+      <Icon name="merge" size={11} strokeWidth={2.2} />
+      {list}
+    </span>
+  )
+}
+
+/** On a penalty: the inspector's Served box, so the grids show what is still to serve. */
+export function ServedTag({ incident }: { incident: Incident }) {
+  if (incident.status !== 'PENALTY_APPLIED' || !incident.penalty) return null
+  const served = incident.penalty.served
+  return (
+    <span className={served ? styles.served : styles.unserved}>
+      <Icon name={served ? 'check' : 'clock'} size={11} strokeWidth={2.2} />
+      {served ? 'Served' : 'Not served'}
+    </span>
+  )
 }
 
 /** "Internal · never exported to drivers" vs "Visible to drivers". */

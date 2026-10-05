@@ -3,7 +3,7 @@ import { Icon } from '../../icons'
 import { incidentLap, surname } from '../../lib/cars'
 import { formatHms } from '../../lib/format'
 import { TYPE_LABEL } from '../../lib/labels'
-import { Plate, SourceTag, StatusChip, cx } from '../../ui/primitives'
+import { MergedTag, Plate, ServedTag, SourceTag, StatusChip, cx } from '../../ui/primitives'
 import ui from '../../ui/ui.module.scss'
 import styles from './IncidentsPage.module.scss'
 
@@ -53,6 +53,7 @@ export function IncidentRow({
       <button type="button" className={styles.what}>
         <span className={styles.whatLine}>
           <b>{TYPE_LABEL[incident.type]}</b>
+          <MergedTag incident={incident} />
           <span className={cx(ui.trunc, styles.summary)}>{incident.summary}</span>
         </span>
         <span className={styles.cars}>
@@ -64,8 +65,9 @@ export function IncidentRow({
           ))}
         </span>
       </button>
-      <span>
+      <span className={styles.status}>
         <StatusChip status={incident.status} />
+        <ServedTag incident={incident} />
       </span>
       <span>
         <SourceTag source={incident.source} />
