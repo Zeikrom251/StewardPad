@@ -150,6 +150,12 @@ STEWARDPAD_API_URL=http://localhost:3001 STEWARDPAD_SITE_URL=http://localhost:51
 
 Signing in for real needs the Discord app's credentials in the website repo's `.env`.
 
+Under WSL the browser is Windows': the app opens it with `rundll32.exe`, and a dev build
+registers `stewardpad://` for the current Windows user too (`HKCU\Software\Classes\stewardpad`,
+starting this build through `wsl.exe --exec`), so the sign-in and invite links come back to the
+running app. An installed StewardPad registers the same key: after a WSL dev session, reinstall
+it (or `reg.exe delete HKCU\Software\Classes\stewardpad /f` to drop the dev entry).
+
 ## Tests
 
 - `pnpm test` runs every `*.test.ts` with Node's built-in `node:test`. There is no test framework

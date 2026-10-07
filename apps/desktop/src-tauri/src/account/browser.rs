@@ -4,28 +4,20 @@
 use std::process::Command;
 
 pub fn open(url: &str) -> std::io::Result<()> {
-    #[cfg(windows)]
-    let mut command = {
-        let mut command = Command::new("rundll32");
-        command.args(["url.dll,FileProtocolHandler", url]);
-        command
-    };
-    #[cfg(target_os = "macos")]
-    let mut command = {
-        let mut command = Command::new("open");
-        command.arg(url);
-        command
-    };
-    // Under WSL (development), the browser is Windows' own.
-    #[cfg(not(any(windows, target_os = "macos")))]
-    let mut command = {
-        let opener = if std::env::var_os("WSL_DISTRO_NAME").is_some() { "explorer.exe" } else { "xdg-open" };
-        let mut command = Command::new(opener);
-        command.arg(url);
-        command
-    };
-    let mut child = command.spawn()?;
+    let mut child = opener().arg(url).spawn()?;
     // Reaped on its own thread: the opener exits as soon as the browser has the link.
     std::thread::spawn(move || child.wait());
     Ok(())
+}
+
+/// On Windows, and under WSL (development, where the browser is Windows' own), the shell's URL
+/// handler: it hands the link to the default browser as is (explorer.exe would take a link
+/// with a query string for a folder and open Documents).
+fn opener() -> Command {
+    if cfg!(windows) || std::env::var_os("WSL_DISTRO_NAME").is_some() {
+        let mut command = Command::new(if cfg!(windows) { "rundll32" } else { "rundll32.exe" });
+        command.arg("url.dll,FileProtocolHandler");
+        return command;
+    }
+    Command::new(if cfg!(target_os = "macos") { "open" } else { "xdg-open" })
 }
