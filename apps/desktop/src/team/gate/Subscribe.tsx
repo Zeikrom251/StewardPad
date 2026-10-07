@@ -10,6 +10,8 @@ import gate from './Gate.module.scss'
 import { HowToPay } from './HowToPay'
 import styles from './Subscribe.module.scss'
 
+// The same price as stewardpad.com (apps/client/src/lib/site.ts, TEAM_MONTHLY_EUR).
+const MONTHLY_EUR = 5
 const POINTS = [
   'Create leagues',
   'Invite stewards, free for them',
@@ -33,7 +35,7 @@ export function Subscribe({ howToPay, onSent }: { howToPay: string | null; onSen
     })
   return (
     <section className={cx(gate.card, styles.form)}>
-      <span className={styles.eyebrow}>StewardPad Team</span>
+      <span className={styles.eyebrow}>StewardPad Team · €{MONTHLY_EUR} / month</span>
       <h2>Run your league with your stewards</h2>
       <p className={gate.lead}>
         Create leagues, invite your stewards and stream live timing to them.
@@ -66,6 +68,7 @@ export function Subscribe({ howToPay, onSent }: { howToPay: string | null; onSen
           options={MONTHS}
           onChange={(months) => setInput({ ...input, months })}
         />
+        <span>€{MONTHLY_EUR * input.months} in all, sent as one PayPal payment request.</span>
       </div>
       <HowToPay text={howToPay} />
       <label className={styles.field}>
