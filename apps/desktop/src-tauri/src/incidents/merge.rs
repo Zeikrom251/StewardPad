@@ -33,6 +33,7 @@ impl Core {
         let cars = merge_cars(&with_primary_first);
         primary.cars = cars;
         primary.merged_from_ids.extend(children.iter().map(|c| c.id.clone()));
+        self.join_reviewers(&mut primary);
         primary.updated_at = now.clone();
         for child in children {
             self.store.save(Incident {

@@ -24,7 +24,7 @@ pub fn incident(id: &str, sequence_number: u32) -> Incident {
         penalty: None,
         rules: vec![],
         logged_by: "Steward".into(),
-        reviewed_by: None,
+        reviewers: Vec::new(),
         created_at: "2026-09-28T09:00:00.000Z".into(),
         updated_at: "2026-09-28T09:00:00.000Z".into(),
         version: 0,

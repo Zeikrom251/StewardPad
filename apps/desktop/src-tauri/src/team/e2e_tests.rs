@@ -124,6 +124,12 @@ fn two_pcs_share_one_incident_and_settle_a_same_field_edit() {
     drain(&mut steward, &live);
     let theirs = steward.core.get(&logged.id).expect("kept");
     assert_eq!((theirs.status, theirs.summary.as_str()), (mine.status, "Contact at La Source"));
-    assert_eq!((theirs.version, theirs.reviewed_by.as_deref()), (mine.version, Some("E2E Owner")));
+    assert_eq!(theirs.version, mine.version);
+    assert_eq!(theirs.reviewers, ["E2E Steward", "E2E Owner"], "both edited it: both claimed it");
+    // Both edited it, so both claimed it. The owner steps back; the steward's PC hears of it.
+    owner.core.unclaim(&logged.id).expect("unclaims");
+    flush(&mut owner);
+    drain(&mut steward, &live);
+    assert_eq!(steward.core.get(&logged.id).expect("kept").reviewers, ["E2E Steward"]);
     delete_league(&owner, &league);
 }

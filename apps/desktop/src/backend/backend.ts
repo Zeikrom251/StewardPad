@@ -74,6 +74,9 @@ export const backend = {
   /** All or none: if one id is unknown, nothing is deleted. */
   deleteIncidents: (ids: string[]) => invoke<void>('delete_incidents', { ids }),
   mergeIncidents: (input: MergeIncidentsInput) => invoke<Incident>('merge_incidents', { input }),
+  /** This steward joins the incident's reviewers, or leaves them (never anyone else). */
+  claimIncident: (id: string) => invoke<Incident>('claim_incident', { id }),
+  unclaimIncident: (id: string) => invoke<Incident>('unclaim_incident', { id }),
   /** Archives a copy, then clears the list — also the "Clear all" action. */
   archiveSession: () => invoke<void>('archive_session'),
   /** Writes the session now, skipping the debounce (before the updater closes the app). */

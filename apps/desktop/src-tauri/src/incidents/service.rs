@@ -77,17 +77,12 @@ impl Core {
         let mut incident = before.clone();
         let previous_lap = lap_from_replay_reference(&incident.replay_reference);
         fields.apply_to(&mut incident);
-        // reviewedBy is never typed: it names whoever last changed the incident. A save that
-        // changes nothing (an inspector opening, a merged incident being read) stamps nobody,
-        // so another steward's review survives someone else looking at it.
-        incident.reviewed_by = before.reviewed_by.clone();
+        // A save that changes nothing (an inspector opening, a merged incident being read)
+        // claims nothing: looking at an incident doesn't put anyone's name on it.
         if incident == before {
             return Ok(before);
         }
-        let steward = self.steward_name();
-        if !steward.is_empty() {
-            incident.reviewed_by = Some(steward);
-        }
+        self.join_reviewers(&mut incident);
         let lap = incident.cars.first().and_then(|c| c.lap_at_incident).unwrap_or(previous_lap);
         incident.replay_reference = build_replay_reference(self.session.session_type, incident.event_seconds, lap);
         incident.updated_at = UtcTime::now().iso();
@@ -146,7 +141,7 @@ impl Core {
             penalty: fields.penalty.clone().flatten(),
             rules: fields.rules.clone().unwrap_or_default(),
             logged_by: draft.logged_by.clone(),
-            reviewed_by: fields.reviewed_by.clone().flatten(),
+            reviewers: Vec::new(),
             created_at: now.clone(),
             updated_at: now,
             version: 0,

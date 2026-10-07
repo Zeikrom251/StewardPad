@@ -33,6 +33,10 @@ pub enum Op {
     Delete { incident_id: String },
     #[serde(rename_all = "camelCase")]
     Merge { incident_id: String, child_ids: Vec<String> },
+    #[serde(rename_all = "camelCase")]
+    Claim { incident_id: String },
+    #[serde(rename_all = "camelCase")]
+    Unclaim { incident_id: String },
 }
 
 impl Op {
@@ -41,14 +45,16 @@ impl Op {
             Op::Create { incident_id, .. }
             | Op::Edit { incident_id, .. }
             | Op::Delete { incident_id }
-            | Op::Merge { incident_id, .. } => incident_id,
+            | Op::Merge { incident_id, .. }
+            | Op::Claim { incident_id }
+            | Op::Unclaim { incident_id } => incident_id,
         }
     }
 
     fn fields_mut(&mut self) -> Option<&mut Fields> {
         match self {
             Op::Create { fields, .. } | Op::Edit { fields, .. } => Some(fields),
-            Op::Delete { .. } | Op::Merge { .. } => None,
+            Op::Delete { .. } | Op::Merge { .. } | Op::Claim { .. } | Op::Unclaim { .. } => None,
         }
     }
 }
@@ -135,6 +141,8 @@ impl Outbox {
                 | Op::Edit { incident_id, .. }
                 | Op::Delete { incident_id }
                 | Op::Merge { incident_id, .. }
+                | Op::Claim { incident_id }
+                | Op::Unclaim { incident_id }
                     if incident_id == from =>
                 {
                     *incident_id = to.to_string();
@@ -153,6 +161,15 @@ impl Outbox {
             }
         }
         fields
+    }
+
+    /// This PC's latest claim (true) or unclaim of the incident the league hasn't confirmed.
+    pub fn pending_claim(&self, id: &str) -> Option<bool> {
+        self.items.iter().rev().filter(|item| item.op.incident_id() == id).find_map(|item| match item.op {
+            Op::Claim { .. } => Some(true),
+            Op::Unclaim { .. } => Some(false),
+            _ => None,
+        })
     }
 
     pub fn has_pending(&self, id: &str) -> bool {

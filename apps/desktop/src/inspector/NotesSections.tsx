@@ -1,9 +1,7 @@
 import type { IncidentEditableFields } from '@stewardpad/shared'
 import { TYPE_LABEL, TYPE_ORDER } from '../lib/labels'
-import { useLive } from '../backend/LiveProvider'
 import { AudienceTag } from '../ui/primitives'
 import { Select } from '../ui/Select'
-import ui from '../ui/ui.module.scss'
 import { Collapsible } from './Collapsible'
 import { MarkdownEditor } from './MarkdownEditor'
 import { PenaltyBox } from './PenaltyBox'
@@ -41,29 +39,13 @@ export function StewardNotesSection({
   )
 }
 
-/** Stamped by the backend from Settings → Your name whenever a steward treats the incident. */
-function ReviewedBy({ reviewedBy }: { reviewedBy: string | null }) {
-  const named = Boolean(useLive()?.config.stewardName.trim())
-  return (
-    <div className={styles.inline}>
-      <span className={styles.key}>Reviewed by</span>
-      <span className={reviewedBy ? styles.reviewer : ui.faint}>
-        {reviewedBy ?? (named ? 'Not reviewed yet' : 'Set your name in Settings to sign reviews')}
-      </span>
-    </div>
-  )
-}
-
 /** What happened and what the stewards found: published with the decision. */
 export function InvestigationSection({
   draft,
   setField,
-  reviewedBy,
 }: {
   draft: IncidentEditableFields
   setField: SetField
-  /** From the saved incident, not the draft: the backend stamps it on save. */
-  reviewedBy: string | null
 }) {
   return (
     <Collapsible
@@ -85,7 +67,6 @@ export function InvestigationSection({
         value={draft.summary}
         onChange={(v) => setField('summary', v)}
       />
-      <ReviewedBy reviewedBy={reviewedBy} />
     </Collapsible>
   )
 }

@@ -1,0 +1,22 @@
+// The claim row on top of the case sections: who is on the incident, and Claim / Unclaim.
+.claims {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--color-border);
+
+  .key {
+    width: 78px;
+  }
+}
+
+.claimers {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}

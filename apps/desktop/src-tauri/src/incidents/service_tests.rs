@@ -70,14 +70,13 @@ fn a_time_nudge_moves_event_seconds_but_never_the_recorded_look_back() {
 fn an_update_leaves_absent_fields_alone_and_clears_explicit_nulls() {
     let (mut core, _) = core("partial");
     let penalty = json!({ "type": "WARNING", "seconds": null, "appliedTo": "7", "served": false, "notes": "" });
-    let created =
-        core.create(fields(json!({ "summary": "kept", "penalty": penalty, "reviewedBy": "J" }))).expect("creates");
+    let created = core.create(fields(json!({ "summary": "kept", "penalty": penalty }))).expect("creates");
     let edited = core.update(&created.id, fields(json!({ "decision": "Warning" }))).expect("updates");
     assert_eq!((edited.summary.as_str(), edited.penalty.is_some()), ("kept", true));
-    let cleared = core.update(&created.id, fields(json!({ "penalty": null, "reviewedBy": null }))).expect("updates");
+    let cleared = core.update(&created.id, fields(json!({ "penalty": null }))).expect("updates");
     assert_eq!(cleared.penalty, None);
-    // reviewedBy isn't editable: it stays until someone with a name in Settings changes the incident.
-    assert_eq!(cleared.reviewed_by.as_deref(), Some("J"));
+    // The reviewers are claimed, never typed.
+    assert!(serde_json::from_value::<IncidentFields>(json!({ "reviewers": ["J"] })).is_err());
 }
 
 #[test]
@@ -150,26 +149,15 @@ fn switching_the_data_source_keeps_the_incidents_and_is_saved() {
 }
 
 #[test]
-fn treating_an_incident_stamps_the_steward_from_settings_as_reviewer() {
-    let (mut core, _) = core("reviewer");
-    core.store.config.steward_name = "Ryan".into();
-    let logged = core.quick_log(QuickLogInput::default()).expect("logs");
-    assert_eq!(logged.reviewed_by, None);
-    let treated = core.update(&logged.id, fields(json!({ "status": "UNDER_INVESTIGATION" }))).expect("updates");
-    assert_eq!(treated.reviewed_by.as_deref(), Some("Ryan"));
-}
-
-#[test]
-fn a_save_that_changes_nothing_keeps_the_other_stewards_review() {
+fn a_save_that_changes_nothing_keeps_the_incident_as_it_was() {
     let (mut core, _) = core("viewer");
     let logged = core.quick_log(QuickLogInput::default()).expect("logs");
     core.store.config.steward_name = "Nina".into();
     let reviewed = core.update(&logged.id, fields(json!({ "status": "NO_FURTHER_ACTION" }))).expect("reviews");
     core.store.config.steward_name = "Ryan".into();
     // Ryan opens it: the inspector sends back exactly what it received.
-    let viewed =
-        core.update(&logged.id, fields(json!({ "status": "NO_FURTHER_ACTION", "reviewedBy": null }))).expect("saves");
-    assert_eq!(viewed.reviewed_by.as_deref(), Some("Nina"));
+    let viewed = core.update(&logged.id, fields(json!({ "status": "NO_FURTHER_ACTION" }))).expect("saves");
+    assert_eq!(viewed.reviewers, ["Nina"]);
     assert_eq!(viewed.updated_at, reviewed.updated_at);
 }
 

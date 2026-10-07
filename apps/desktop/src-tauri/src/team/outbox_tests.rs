@@ -85,3 +85,17 @@ fn the_queue_survives_the_session_file() {
     assert!(json.contains(r#""kind":"merge""#) && json.contains(r#""childIds":["b"]"#));
     assert_eq!(serde_json::from_str::<Outbox>(&json).expect("restores"), outbox);
 }
+
+#[test]
+fn a_claim_and_an_unclaim_ask_the_league_with_their_op_id() {
+    let mut outbox = Outbox::default();
+    outbox.push(Op::Claim { incident_id: "a".into() });
+    outbox.push(Op::Unclaim { incident_id: "a".into() });
+    assert_eq!(outbox.pending_claim("a"), Some(false), "the latest one counts");
+    let claim = outbox.pop_front().expect("queued");
+    let (method, path, body) = crate::team::settle::request_of(&claim);
+    assert_eq!((method, path.as_str(), body), ("POST", "/incidents/a/claim", json!({ "opId": claim.op_id })));
+    let unclaim = outbox.pop_front().expect("queued");
+    let (method, path, _) = crate::team::settle::request_of(&unclaim);
+    assert_eq!((method, path), ("DELETE", format!("/incidents/a/claim?opId={}", unclaim.op_id)));
+}

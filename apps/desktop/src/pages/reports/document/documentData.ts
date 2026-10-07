@@ -39,6 +39,6 @@ export function splitByVerdict(incidents: Incident[]): {
 
 /** Everyone who signed a decision, alphabetically. */
 export function stewardsOf(decided: Incident[]): string[] {
-  const names = decided.flatMap((i) => (i.reviewedBy ? [i.reviewedBy] : []))
+  const names = decided.flatMap((i) => i.reviewers)
   return [...new Set(names)].sort((a, b) => a.localeCompare(b))
 }

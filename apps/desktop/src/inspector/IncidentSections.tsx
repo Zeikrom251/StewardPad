@@ -1,5 +1,6 @@
 import type { Incident, IncidentEditableFields } from '@stewardpad/shared'
 import { CarsSection } from './CarsSection'
+import { ClaimRow } from './ClaimRow'
 import {
   DecisionSection,
   InvestigationSection,
@@ -19,6 +20,7 @@ interface SectionProps {
 export function CaseSections({ incident, draft, setField }: SectionProps) {
   return (
     <>
+      <ClaimRow incident={incident} />
       <WhenSection
         incident={incident}
         eventSeconds={draft.eventSeconds}
@@ -34,7 +36,7 @@ export function CaseSections({ incident, draft, setField }: SectionProps) {
 export function VerdictSections({ incident, draft, setField }: SectionProps) {
   return (
     <>
-      <InvestigationSection draft={draft} setField={setField} reviewedBy={incident.reviewedBy} />
+      <InvestigationSection draft={draft} setField={setField} />
       <RulesSection rules={draft.rules ?? []} onChange={(rules) => setField('rules', rules)} />
       <DecisionSection draft={draft} setField={setField} />
     </>

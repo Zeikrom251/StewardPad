@@ -135,11 +135,12 @@ mod tests {
         let paths = Paths::in_dir(&temp_dir("legacy"));
         let legacy = r#"{"incidents":[{"id":"x","sequenceNumber":1,"eventSeconds":1,"loggedAtSeconds":1,"lookbackApplied":0,
             "wallClock":"","replayReference":"RACE 00:00:01 — Lap 0","cars":[{"carNumber":"7","driverName":"A","lapAtIncident":null,"role":"INVOLVED"}],
-            "type":"OTHER","status":"NOTED","summary":"","stewardNotes":"","decision":"","penalty":null,"loggedBy":"","reviewedBy":null,
+            "type":"OTHER","status":"NOTED","summary":"","stewardNotes":"","decision":"","penalty":null,"loggedBy":"","reviewedBy":"J",
             "createdAt":"","updatedAt":""}],"nextSequenceNumber":2,"config":{"lookbackSeconds":8,"stewardName":"J","archiveDir":null}}"#;
         write_atomic(&paths.current_session, legacy).expect("writes");
         let state = restore(&paths.current_session).expect("restores");
         assert_eq!(state.incidents[0].cars[0].car_class, "");
+        assert_eq!(state.incidents[0].reviewers, ["J"], "its one reviewer, as a claim");
         assert_eq!(state.config.lookback_seconds, 8);
         assert_eq!(state.config.adapter, crate::lmu::AdapterName::Mock);
         let store = crate::store::Store::from_state(state);

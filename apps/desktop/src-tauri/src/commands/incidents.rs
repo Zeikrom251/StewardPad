@@ -111,6 +111,17 @@ pub fn merge_incidents(app: AppHandle, state: State<AppState>, input: MergeInput
     mutate(&app, &state, |core| core.merge(input))
 }
 
+/// Inspector → Claim: this steward joins the incident's reviewers.
+#[tauri::command]
+pub fn claim_incident(app: AppHandle, state: State<AppState>, id: String) -> AppResult<Incident> {
+    mutate(&app, &state, |core| core.claim(&id))
+}
+
+#[tauri::command]
+pub fn unclaim_incident(app: AppHandle, state: State<AppState>, id: String) -> AppResult<Incident> {
+    mutate(&app, &state, |core| core.unclaim(&id))
+}
+
 /// "Clear all" and "Archive session" are the same safe operation: a copy goes to the
 /// archive folder first, then the list resets to #1.
 #[tauri::command]

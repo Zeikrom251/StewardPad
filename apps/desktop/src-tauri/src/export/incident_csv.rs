@@ -132,7 +132,7 @@ fn full_row(i: &Incident, seq_by_id: &HashMap<&str, u32>) -> Vec<String> {
         decode_entities(&i.decision),
         penalty_field(i),
         i.logged_by.clone(),
-        i.reviewed_by.clone().unwrap_or_default(),
+        i.reviewers.join(", "),
         i.wall_clock.clone(),
         i.created_at.clone(),
         i.updated_at.clone(),

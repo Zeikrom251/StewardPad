@@ -3,6 +3,7 @@
 
 use crate::api::wire::{overlay, SessionIncidents, SyncedIncident};
 use crate::core::Core;
+use crate::incidents::mark;
 
 impl Core {
     /// An answer or a live event. True when the list changed.
@@ -20,6 +21,7 @@ impl Core {
             return deleted;
         }
         let pending = link.outbox.pending_fields(&remote.id);
+        let claim = link.outbox.pending_claim(&remote.id);
         let local = self.store.get(&remote.id);
         if local.is_some_and(|local| local.version >= remote.version) {
             return false;
@@ -27,6 +29,9 @@ impl Core {
         let edited_twice = local.is_some_and(|local| local.edited_twice);
         let mut incident = remote.into_incident();
         overlay(&mut incident, &pending);
+        if let Some(claimed) = claim {
+            mark(&mut incident.reviewers, &self.steward_name(), claimed);
+        }
         incident.edited_twice = edited_twice;
         self.store.note_sequence(incident.sequence_number);
         self.store.save(incident);

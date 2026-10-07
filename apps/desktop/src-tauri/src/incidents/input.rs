@@ -6,8 +6,8 @@ use serde::{Deserialize, Deserializer};
 use crate::domain::{Incident, IncidentStatus, IncidentType, InvolvedCar, Penalty, RuleRef};
 use crate::error::{AppError, AppResult};
 
-/// Every field the steward may edit; absent = unchanged. `penalty` and `reviewedBy` are
-/// tri-state: absent keeps the value, an explicit null clears it.
+/// Every field the steward may edit; absent = unchanged. `penalty` is tri-state: absent keeps
+/// the value, an explicit null clears it. The reviewers are claimed (claims.rs), never typed.
 #[derive(Deserialize, Default, Debug)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct IncidentFields {
@@ -23,8 +23,6 @@ pub struct IncidentFields {
     pub penalty: Option<Option<Penalty>>,
     pub rules: Option<Vec<RuleRef>>,
     pub logged_by: Option<String>,
-    #[serde(default, deserialize_with = "present")]
-    pub reviewed_by: Option<Option<String>>,
 }
 
 /// Distinguishes `"field": null` (Some(None)) from a missing field (None).
@@ -88,9 +86,6 @@ impl IncidentFields {
         }
         if let Some(v) = self.logged_by {
             incident.logged_by = v;
-        }
-        if let Some(v) = self.reviewed_by {
-            incident.reviewed_by = v;
         }
     }
 }

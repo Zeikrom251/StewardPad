@@ -42,6 +42,15 @@ impl Core {
         self.queue(|outbox| outbox.push(op));
     }
 
+    pub(crate) fn record_claim(&mut self, id: &str, claimed: bool) {
+        if self.open_session_id().is_none() {
+            return;
+        }
+        let incident_id = id.to_string();
+        let op = if claimed { Op::Claim { incident_id } } else { Op::Unclaim { incident_id } };
+        self.queue(|outbox| outbox.push(op));
+    }
+
     fn queue(&mut self, change: impl FnOnce(&mut Outbox)) {
         let Some(link) = self.store.team.as_mut() else { return };
         change(&mut link.outbox);

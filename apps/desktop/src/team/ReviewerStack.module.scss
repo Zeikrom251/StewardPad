@@ -1,0 +1,21 @@
+.stack {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+
+  // Each initial overlaps the previous one, ringed in the surface colour so they stay apart.
+  > * {
+    box-shadow: 0 0 0 2px var(--color-surface);
+  }
+
+  > * + * {
+    margin-left: -5px;
+  }
+}
+
+.more {
+  padding-left: 7px;
+  box-shadow: none !important;
+  font: 600 11px var(--font-mono);
+  color: var(--color-text-muted);
+}

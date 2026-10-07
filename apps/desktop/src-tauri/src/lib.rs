@@ -47,6 +47,8 @@ pub fn run() {
             commands::incidents::delete_incident,
             commands::incidents::delete_incidents,
             commands::incidents::merge_incidents,
+            commands::incidents::claim_incident,
+            commands::incidents::unclaim_incident,
             commands::incidents::archive_session,
             commands::incidents::flush_session,
             commands::incidents::import_sessions,

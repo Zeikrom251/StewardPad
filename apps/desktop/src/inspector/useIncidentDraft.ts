@@ -17,7 +17,6 @@ function toEditableFields(incident: Incident): IncidentEditableFields {
     penalty,
     rules,
     loggedBy,
-    reviewedBy,
   } = incident
   return {
     eventSeconds,
@@ -30,7 +29,6 @@ function toEditableFields(incident: Incident): IncidentEditableFields {
     penalty,
     rules: rules ?? [],
     loggedBy,
-    reviewedBy,
   }
 }
 

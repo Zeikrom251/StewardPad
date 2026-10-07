@@ -12,7 +12,7 @@ const FIELDS: Array<[keyof EmbedFields, string]> = [
   ['decision', 'Decision'],
   ['penalty', 'Penalty'],
   ['sessionTime', 'Session time and lap'],
-  ['reviewedBy', 'Steward’s name'],
+  ['reviewedBy', 'Stewards’ names'],
 ]
 
 function FieldChecks({

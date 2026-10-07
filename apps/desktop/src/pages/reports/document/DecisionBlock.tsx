@@ -116,7 +116,9 @@ export function DecisionBlock({
               <PenaltyValue incident={incident} />
             </Row>
           )}
-          {signed && incident.reviewedBy && <Row label="Reviewed by">{incident.reviewedBy}</Row>}
+          {signed && incident.reviewers.length > 0 && (
+            <Row label="Reviewed by">{incident.reviewers.join(', ')}</Row>
+          )}
         </tbody>
       </table>
     </section>

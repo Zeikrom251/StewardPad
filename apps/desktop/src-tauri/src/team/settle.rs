@@ -73,7 +73,9 @@ impl Core {
             let from = match &sent.op {
                 Op::Edit { base_version, .. } => *base_version,
                 Op::Create { .. } => 0,
-                Op::Delete { .. } | Op::Merge { .. } => incident.version.saturating_sub(1),
+                Op::Delete { .. } | Op::Merge { .. } | Op::Claim { .. } | Op::Unclaim { .. } => {
+                    incident.version.saturating_sub(1)
+                }
             };
             if let Some(link) = self.store.team.as_mut() {
                 link.outbox.rebase(&incident.id, from, incident.version);
@@ -153,5 +155,9 @@ pub(super) fn request_of(item: &Pending) -> (&'static str, String, Value) {
             format!("/incidents/{incident_id}/merge"),
             serde_json::json!({ "opId": op_id, "childIds": child_ids }),
         ),
+        Op::Claim { incident_id } => {
+            ("POST", format!("/incidents/{incident_id}/claim"), serde_json::json!({ "opId": op_id }))
+        }
+        Op::Unclaim { incident_id } => ("DELETE", format!("/incidents/{incident_id}/claim?opId={op_id}"), Value::Null),
     }
 }

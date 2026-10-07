@@ -31,7 +31,7 @@ fn remote(id: &str, version: u32, summary: &str) -> SyncedIncident {
         "wallClock": "2026-10-05T12:00:00.000Z", "replayReference": "RACE 00:01:40 · Lap 2",
         "cars": [], "type": "CONTACT", "status": "NOTED", "summary": summary,
         "stewardNotes": "", "decision": "", "penalty": null, "rules": [],
-        "loggedBy": "Alex", "reviewedBy": null, "version": version, "deletedAt": null,
+        "loggedBy": "Alex", "reviewers": ["Alex"], "version": version, "deletedAt": null,
         "createdAt": "2026-10-05T12:00:00.000Z", "updatedAt": "2026-10-05T12:00:00.000Z"
     }))
     .expect("a synced incident")
@@ -76,4 +76,19 @@ fn another_sessions_incident_or_a_deletion_is_handled() {
     assert!(core.apply_remote(deleted));
     assert!(core.get("a").is_err());
     assert_eq!(core.list().len(), 0);
+}
+
+#[test]
+fn this_pcs_unsent_claim_stays_on_a_teammates_copy_and_is_queued() {
+    let mut core = linked_core();
+    core.store.config.steward_name = "Zeikr".into();
+    core.apply_remote(remote("a", 2, "Turn 1"));
+    assert_eq!(core.claim("a").expect("claims").reviewers, ["Alex", "Zeikr"]);
+    assert!(core.apply_remote(remote("a", 3, "Turn 1, both cars")));
+    assert_eq!(core.get("a").expect("stored").reviewers, ["Alex", "Zeikr"], "this PC's unsent claim");
+    core.unclaim("a").expect("unclaims");
+    assert!(core.apply_remote(remote("a", 4, "")));
+    assert_eq!(core.get("a").expect("stored").reviewers, ["Alex"]);
+    let queued = core.link().expect("linked").outbox.len();
+    assert_eq!(queued, 2, "the claim, then the unclaim");
 }
