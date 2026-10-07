@@ -98,7 +98,7 @@ league's open race session (the API's reference is `docs/sync-api.md` in the web
   sees `AccountView`.
 - _Every API call is made in Rust_ (`api/`), never by the webview, so nothing the UI renders
   (teammates' incident text included) can reach the token. Release builds talk to
-  `https://api.stewardpad.com` only; the `STEWARDPAD_*_URL` overrides work in debug builds.
+  `https://stewardpad.com/api` only; the `STEWARDPAD_*_URL` overrides work in debug builds.
 - _Each change_ to an incident is saved locally first, then queued in the outbox
   (`team/outbox.rs`, saved in the session file) and sent in order with its `opId`, so a retry is
   never applied twice and a night offline loses nothing. Edits carry only the changed fields;

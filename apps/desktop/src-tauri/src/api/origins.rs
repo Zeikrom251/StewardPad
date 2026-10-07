@@ -1,17 +1,16 @@
-//! Where the API and the website are. A release build always talks to production; a debug build
-//! may be pointed at a local stack (`STEWARDPAD_API_URL`, `STEWARDPAD_SITE_URL`, from the
-//! environment or the repo's `.env`), and only at https or this machine, so nothing in the
-//! environment can send the token elsewhere.
+//! Where the API and the website are. A release build always talks to production: one origin,
+//! with the API under the website's `/api`. A debug build may be pointed at a local stack
+//! (`STEWARDPAD_API_URL`, `STEWARDPAD_SITE_URL`, from the environment or the repo's `.env`), and
+//! only at https or this machine, so nothing in the environment can send the token elsewhere.
 
-const API_URL: &str = "https://api.stewardpad.com";
-const SITE_URL: &str = "https://stewardpad.com";
+const PRODUCTION: &str = "https://stewardpad.com";
 
 pub fn is_dev() -> bool {
     cfg!(debug_assertions)
 }
 
 pub fn resolve() -> (String, String) {
-    (from_env("STEWARDPAD_API_URL", API_URL), from_env("STEWARDPAD_SITE_URL", SITE_URL))
+    (from_env("STEWARDPAD_API_URL", PRODUCTION), from_env("STEWARDPAD_SITE_URL", PRODUCTION))
 }
 
 fn from_env(key: &str, production: &str) -> String {
@@ -54,9 +53,9 @@ fn allowed(url: &str) -> bool {
 mod tests {
     #[test]
     fn only_https_or_this_machine() {
-        assert!(super::allowed("https://api.stewardpad.com"));
+        assert!(super::allowed("https://stewardpad.com"));
         assert!(super::allowed("http://localhost:3001"));
-        assert!(!super::allowed("http://api.stewardpad.com"));
+        assert!(!super::allowed("http://stewardpad.com"));
         assert!(!super::allowed("http://localhost.evil.com"));
         assert!(!super::allowed("http://localhost:3001@evil.com"));
         assert!(!super::allowed("https://user@evil.com"));
