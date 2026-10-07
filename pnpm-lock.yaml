@@ -47,6 +47,9 @@ importers:
       '@tiptap/starter-kit':
         specifier: 3.30.1
         version: 3.30.1
+      marked:
+        specifier: 17.0.6
+        version: 17.0.6
       react:
         specifier: 19.3.0
         version: 19.3.0

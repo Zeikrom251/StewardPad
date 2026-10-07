@@ -64,12 +64,32 @@
     font: 600 14px var(--font-ui);
   }
 
-  // Shown as text, never rendered as HTML: it comes from the API.
-  p {
-    white-space: pre-wrap;
+  // Staff's Markdown (ui/Markdown: React elements, never an HTML string).
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     font-size: 13px;
     line-height: 1.5;
     color: var(--color-text-muted);
+    user-select: text; // the PayPal address or reference is copied from here
+
+    h3 {
+      font: 600 13px var(--font-ui);
+      color: var(--color-text);
+    }
+
+    ol,
+    ul {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-left: 20px;
+    }
+
+    strong {
+      color: var(--color-text);
+    }
   }
 }
 
