@@ -74,6 +74,11 @@ export interface Incident {
   /** Set on the primary: the ids of incidents folded into it (append-only). */
   mergedFromIds: string[]
   /**
+   * Their numbers, for the grids (the children are hidden from the list). Desktop app,
+   * live list only: a single incident read by id has none.
+   */
+  mergedFromNumbers?: number[]
+  /**
    * The LMU contact an auto-created incident came from — the same on every steward's PC
    * in a session, so shared session files recognise the same incident. Desktop app only.
    */

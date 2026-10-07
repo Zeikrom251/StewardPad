@@ -12,6 +12,7 @@ use crate::core::Core;
 use crate::domain::{Incident, SessionInfo, StandingEntry};
 use crate::error::AppResult;
 use crate::incidents::input::{IncidentFields, MergeInput, QuickLogInput};
+use crate::incidents::Listed;
 use crate::settings::AppConfig;
 use crate::share::ImportReport;
 use crate::team::TeamView;
@@ -22,7 +23,7 @@ use crate::team::TeamView;
 pub struct Snapshot {
     session: SessionInfo,
     standings: Vec<StandingEntry>,
-    incidents: Vec<Incident>,
+    incidents: Vec<Listed>,
     config: AppConfig,
     account: AccountView,
     team: TeamView,
@@ -46,7 +47,7 @@ pub fn get_snapshot(state: State<AppState>) -> Snapshot {
     Snapshot {
         session: core.session.clone(),
         standings: core.standings.clone(),
-        incidents: core.list(),
+        incidents: core.listed(),
         config: core.config(),
         account: core.account.view(),
         team: core.team_view(),

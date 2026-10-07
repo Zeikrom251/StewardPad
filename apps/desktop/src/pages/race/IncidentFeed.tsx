@@ -4,7 +4,7 @@ import { Icon } from '../../icons'
 import { incidentLap, newestFirst, surname } from '../../lib/cars'
 import { formatHms } from '../../lib/format'
 import { TYPE_LABEL } from '../../lib/labels'
-import { Kbd, Plate, SourceTag, StatusChip, cx } from '../../ui/primitives'
+import { Kbd, MergedTag, Plate, ServedTag, SourceTag, StatusChip, cx } from '../../ui/primitives'
 import ui from '../../ui/ui.module.scss'
 import { useWorkspace } from '../../workspace/Workspace'
 import { Attribution } from '../../team/Attribution'
@@ -31,6 +31,8 @@ export function FeedItem({
       <span className={styles.line}>
         <span className={styles.type}>{TYPE_LABEL[incident.type]}</span>
         <SourceTag source={incident.source} />
+        <MergedTag incident={incident} />
+        <ServedTag incident={incident} />
       </span>
       {incident.cars.length > 0 && (
         <span className={styles.cars}>

@@ -76,6 +76,18 @@
   white-space: nowrap;
 }
 
+.served {
+  composes: tag;
+  border-color: color-mix(in srgb, var(--color-status-no-further-action) 40%, transparent);
+  color: var(--color-status-no-further-action);
+}
+
+.unserved {
+  composes: tag;
+  border-color: color-mix(in srgb, var(--color-status-under-investigation) 40%, transparent);
+  color: var(--color-status-under-investigation);
+}
+
 .internal {
   composes: tag;
   padding: 1px 6px;

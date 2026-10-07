@@ -24,21 +24,25 @@ export async function saveDecisionsHtml(
 }
 
 /**
+ * The last printed document's frame. It goes only when the next print starts: removing it
+ * on `afterprint` pulls the document from under Chromium's print routine, which can hang
+ * WebView2 after a cancelled print (and WebKitGTK never fires `afterprint`, so frames piled up).
+ */
+let printFrame: HTMLIFrameElement | null = null
+
+/**
  * The system print dialog on the document alone, from a hidden frame: its "Save as PDF" /
  * "Microsoft Print to PDF" printer makes the PDF, so no PDF library is needed.
  */
 export function printDecisions(options: DocumentOptions): void {
+  printFrame?.remove()
   const frame = document.createElement('iframe')
   frame.title = 'Stewards decisions'
   frame.style.cssText = 'position:fixed;width:0;height:0;border:0;visibility:hidden'
   frame.srcdoc = renderDecisionsDocument(options)
-  frame.addEventListener('load', () => {
-    const view = frame.contentWindow
-    if (!view) return frame.remove()
-    view.addEventListener('afterprint', () => frame.remove())
-    view.print()
-  })
+  frame.addEventListener('load', () => frame.contentWindow?.print(), { once: true })
   document.body.append(frame)
+  printFrame = frame
 }
 
 const CSV_SUFFIX: Record<CsvVariant, string> = {

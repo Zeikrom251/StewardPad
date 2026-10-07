@@ -85,6 +85,13 @@
   font-weight: 500;
 }
 
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
 .what {
   display: flex;
   flex-direction: column;
