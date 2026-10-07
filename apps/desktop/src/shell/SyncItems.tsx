@@ -19,7 +19,7 @@ export function StreamSource({ view }: { view: TeamView }) {
   }
   if (!view.watching || !stream) return null
   return (
-    <span className={styles.item} data-link="connected">
+    <span className={styles.item} data-link="stream">
       <i className={styles.dot} />
       Live from <b className={styles.value}>{stream.streamer.displayName}’s PC</b>
     </span>

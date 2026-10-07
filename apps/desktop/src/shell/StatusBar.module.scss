@@ -83,6 +83,12 @@
   --dot: var(--color-accent);
 }
 
+// Timing from a teammate's stream: blue, never your own source's green (pages/race/TimingSource).
+.item[data-link='stream'] {
+  color: var(--color-text);
+  --dot: var(--color-status-noted);
+}
+
 .sync {
   composes: item;
   padding: 0;
