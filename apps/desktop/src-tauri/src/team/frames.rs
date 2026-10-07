@@ -57,8 +57,12 @@ fn upload(app: &AppHandle, stream_id: &str, incoming: Receiver<TimingFrame>) {
 }
 
 impl Core {
-    /// After each LMU tick, while this PC streams: the frame for the uploader.
+    /// After each LMU tick, while this PC streams: the frame for the uploader. A release build
+    /// streams the game only (`feeds_league`): switched to the simulator, it sends nothing.
     pub(crate) fn offer_frame(&mut self) {
+        if !self.feeds_league() {
+            return;
+        }
         let (Some(streaming), Some(frames)) = (self.team.streaming.as_mut(), self.team.frames.as_ref()) else {
             return;
         };
@@ -72,9 +76,18 @@ impl Core {
         let _ = frames.try_send(frame);
     }
 
+    /// Streaming, but from a source the league never gets (`offer_frame`): end the stream.
+    pub(crate) fn streams_nothing(&self) -> bool {
+        self.team.streaming.is_some() && !self.feeds_league()
+    }
+
     /// Dropping the frames' sender ends the uploader.
     pub(super) fn stop_streaming_here(&mut self) {
         self.team.streaming = None;
         self.team.frames = None;
     }
 }
+
+#[cfg(test)]
+#[path = "frames_tests.rs"]
+mod tests;

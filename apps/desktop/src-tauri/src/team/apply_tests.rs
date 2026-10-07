@@ -1,27 +1,8 @@
 use serde_json::json;
 
-use crate::api::wire::{SessionStatus, SessionView, SyncedIncident};
-use crate::core::Core;
-use crate::domain::{IncidentStatus, IncidentType, SessionType};
-use crate::store::{Paths, Saver, Store};
-use crate::team::TeamLink;
-
-fn linked_core() -> Core {
-    let (saver, _changes) = Saver::channel();
-    let paths = Paths::in_dir(&std::env::temp_dir().join(format!("stewardpad-apply-{}", std::process::id())));
-    let mut core = Core::new(Store::empty(), paths, saver);
-    let session = SessionView {
-        id: "s1".into(),
-        title: "Round 4".into(),
-        track_name: "Spa".into(),
-        kind: SessionType::Race,
-        status: SessionStatus::Open,
-        closed_at: None,
-        incidents: 0,
-    };
-    core.store.team = Some(TeamLink::new("l1".into(), "Apex".into(), "u1".into(), session));
-    core
-}
+use crate::api::wire::SyncedIncident;
+use crate::domain::{IncidentStatus, IncidentType};
+use crate::test_support::linked_core;
 
 fn remote(id: &str, version: u32, summary: &str) -> SyncedIncident {
     serde_json::from_value(json!({

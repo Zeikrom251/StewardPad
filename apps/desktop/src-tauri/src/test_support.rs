@@ -1,6 +1,11 @@
-//! Builders for tests only — a full Incident / StandingEntry with overridable fields.
+//! Builders for tests only — a full Incident / StandingEntry with overridable fields, and a
+//! core in a league.
 
+use crate::api::wire::{SessionStatus, SessionView};
+use crate::core::Core;
 use crate::domain::*;
+use crate::store::{Paths, Saver, Store};
+use crate::team::TeamLink;
 
 pub fn incident(id: &str, sequence_number: u32) -> Incident {
     Incident {
@@ -74,4 +79,22 @@ pub fn session(track: &str, session_type: SessionType, elapsed_seconds: f64) -> 
         track_name: track.into(),
         server_name: None,
     }
+}
+
+/// A core in league "Apex" (user u1), following its open session "s1".
+pub fn linked_core() -> Core {
+    let (saver, _changes) = Saver::channel();
+    let paths = Paths::in_dir(&std::env::temp_dir().join(format!("stewardpad-linked-{}", std::process::id())));
+    let mut core = Core::new(Store::empty(), paths, saver);
+    let session = SessionView {
+        id: "s1".into(),
+        title: "Round 4".into(),
+        track_name: "Spa".into(),
+        kind: SessionType::Race,
+        status: SessionStatus::Open,
+        closed_at: None,
+        incidents: 0,
+    };
+    core.store.team = Some(TeamLink::new("l1".into(), "Apex".into(), "u1".into(), session));
+    core
 }
