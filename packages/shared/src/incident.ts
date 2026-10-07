@@ -104,7 +104,12 @@ export interface Incident {
   /** Rules the steward found broken (desktop app; absent from the NestJS server). */
   rules?: RuleRef[]
   loggedBy: string
-  reviewedBy: string | null
+  /**
+   * The stewards on it, in the order they claimed it: a claim or an edit adds one, and each
+   * steward removes only their own (signed with Settings → Your name, or the account in a
+   * league). Never typed.
+   */
+  reviewers: string[]
   createdAt: string
   updatedAt: string
   /** Team: the league's version of it; absent while it exists on this PC only. */

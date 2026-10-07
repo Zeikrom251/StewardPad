@@ -113,7 +113,6 @@ export type IncidentEditableFields = Pick<
   | 'penalty'
   | 'rules'
   | 'loggedBy'
-  | 'reviewedBy'
 >
 
 export type CreateIncidentInput = Partial<IncidentEditableFields>
