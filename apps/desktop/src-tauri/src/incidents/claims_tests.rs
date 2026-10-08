@@ -47,3 +47,10 @@ fn a_claim_needs_a_name_to_sign_it() {
     let id = core.quick_log(QuickLogInput::default()).expect("logs").id;
     assert!(core.claim(&id).is_err());
 }
+
+#[test]
+fn two_stewards_with_the_same_name_unclaim_one_at_a_time() {
+    let mut reviewers = vec!["Alex".to_string(), "Nina".to_string(), "Alex".to_string()];
+    crate::incidents::mark(&mut reviewers, "Alex", false);
+    assert_eq!(reviewers, ["Alex", "Nina"]);
+}

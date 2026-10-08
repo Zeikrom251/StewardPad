@@ -11,8 +11,9 @@ use crate::text::UtcTime;
 pub(crate) fn mark(reviewers: &mut Vec<String>, name: &str, claimed: bool) {
     if claimed && !reviewers.iter().any(|n| n == name) {
         reviewers.push(name.to_string());
-    } else if !claimed {
-        reviewers.retain(|n| n != name);
+    } else if let Some(at) = reviewers.iter().rposition(|n| n == name).filter(|_| !claimed) {
+        // Two stewards can share a display name: one unclaim takes one place.
+        reviewers.remove(at);
     }
 }
 
