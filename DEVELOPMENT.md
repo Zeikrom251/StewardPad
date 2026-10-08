@@ -103,15 +103,19 @@ league's open race session (the API's reference is `docs/sync-api.md` in the web
   (`team/outbox.rs`, saved in the session file) and sent in order with its `opId`, so a retry is
   never applied twice and a night offline loses nothing. Edits carry only the changed fields;
   when two stewards change the same field, this PC's newer edit goes again on top and the
-  incident says "Edited twice".
+  incident says "Edited twice". A change the league refuses for good (a closed session) stays on
+  this PC, on top of the league's copy; one the API keeps answering 500 to is given up the same
+  way after about 8 minutes, so it can't hold up the rest. Signing out keeps the queue for the
+  account's next sign-in; another account starts afresh.
 - _The league's changes_ arrive as live events (`team/listener.rs`), resumed from the last
   revision after any drop. A teammate's copy keeps this PC's unsent fields on top
-  (`team/apply.rs`).
+  (`team/apply.rs`). Each listener follows one league: after a switch, an old one's late answers
+  change nothing. A deleted session unlinks the session, never the league.
 - _Live timing_: one PC streams its frames (gzipped, once a tick); while a teammate streams this
   session, their timing is the clock here and this PC logs no LMU contacts of its own. The
   simulator never feeds a league from a release build.
 - _Privacy_: the profile (email included) stays in memory, so the session file (archived and
-  shared) never holds the account. Avatars are initials: no image is loaded from Discord.
+  shared) never holds the account; archives also leave out the league link and its queue. Avatars are initials: no image is loaded from Discord.
   Settings → Account downloads the steward's data and deletes the account (GDPR art. 15, 17, 20).
 
 **Rule book.** Settings → Rule book imports a `.txt` or `.md` file. Numbered lines become rules;
