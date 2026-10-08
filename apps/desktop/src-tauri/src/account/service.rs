@@ -129,7 +129,8 @@ pub fn expire(app: &AppHandle) {
 }
 
 /// Settings → Account → Sign out: ends the session on the API, then forgets it here. The
-/// incidents stay on this PC; the league link and what it hadn't sent go.
+/// incidents stay on this PC, and so do the league link and what it hadn't sent: signing in
+/// again sends them, while another account starts afresh (engine::drop_foreign_link).
 pub fn sign_out(app: &AppHandle) -> AccountView {
     let state = app.state::<AppState>();
     if let Err(error) = state.api.post::<_, serde_json::Value>("/auth/sign-out", &json!({})) {
@@ -138,16 +139,12 @@ pub fn sign_out(app: &AppHandle) -> AccountView {
             error.status()
         );
     }
-    {
-        let mut core = state.lock();
-        core.store.team = None;
-        core.changed();
-    }
     expire(app);
     state.account_view()
 }
 
-/// Settings → Account → Delete my account (GDPR art. 17). Refused while it owns a league.
+/// Settings → Account → Delete my account (GDPR art. 17). Refused while it owns a league. The
+/// league link and its unsent changes go: the account they would be sent as no longer exists.
 pub fn delete(app: &AppHandle) -> AppResult<AccountView> {
     let state = app.state::<AppState>();
     state.api.delete::<()>("/me")?;

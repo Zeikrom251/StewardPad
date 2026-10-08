@@ -83,7 +83,7 @@ export function AccountGroup({ live }: { live: Snapshot }) {
           <ConfirmButton
             question={
               pending > 0
-                ? `${String(pending)} unsent changes stay on this PC only. Sign out?`
+                ? `${String(pending)} unsent changes wait on this PC until you sign in again. Sign out?`
                 : 'Sign out?'
             }
             confirm="Sign out"
@@ -116,7 +116,11 @@ export function AccountGroup({ live }: { live: Snapshot }) {
       >
         <div className={ui.hstack}>
           <ConfirmButton
-            question="Delete your account for good?"
+            question={
+              pending > 0
+                ? `${String(pending)} unsent changes will never reach your league. Delete your account for good?`
+                : 'Delete your account for good?'
+            }
             confirm="Delete my account"
             disabled={remove.pending}
             onConfirm={() => void remove.run(account.deleteAccount)}

@@ -76,8 +76,13 @@ fn drop_foreign_link(core: &mut Core) {
         _ => false,
     };
     if foreign {
-        core.store.team = None;
-        core.team.notice = Some("You're signed in as someone else: pick a league".into());
+        let unsent = core.store.team.take().map_or(0, |link| link.outbox.len());
+        core.team.notice = Some(match unsent {
+            0 => "You're signed in as someone else: pick a league".into(),
+            n => format!(
+                "You're signed in as someone else: the previous account's {n} unsent changes stay on this PC only"
+            ),
+        });
         core.changed();
     }
 }
