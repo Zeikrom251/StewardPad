@@ -58,8 +58,8 @@ fn register_for_development(app: &tauri::App) {
 fn register_in_windows() -> std::io::Result<()> {
     let Some(distro) = std::env::var_os("WSL_DISTRO_NAME") else { return Ok(()) };
     let exe = std::env::current_exe()?;
-    let start =
-        format!(r#""C:\Windows\System32\wsl.exe" -d {} --exec "{}" "%1""#, distro.to_string_lossy(), exe.display());
+    let start = wsl_open_command(&distro.to_string_lossy(), &exe.to_string_lossy())
+        .ok_or_else(|| std::io::Error::other("this distro or build path can't be quoted in a Windows command"))?;
     let key = r"HKCU\Software\Classes\stewardpad";
     let command_key = format!(r"{key}\shell\open\command");
     let values: [&[&str]; 3] = [
@@ -74,6 +74,14 @@ fn register_in_windows() -> std::io::Result<()> {
         }
     }
     Ok(())
+}
+
+/// What Windows runs for a link: this build, through `wsl.exe --exec`. None for a distro or a
+/// path that a quote would break out of (the registry keeps the command as one string).
+#[cfg(all(debug_assertions, target_os = "linux"))]
+fn wsl_open_command(distro: &str, exe: &str) -> Option<String> {
+    let word = !distro.is_empty() && distro.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_'));
+    (word && !exe.contains('"')).then(|| format!(r#""C:\Windows\System32\wsl.exe" -d {distro} --exec "{exe}" "%1""#))
 }
 
 pub fn open(app: &AppHandle, url: &str) {
