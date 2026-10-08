@@ -6,10 +6,11 @@ use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::sync::Arc;
 use std::time::Duration;
 
+use serde_json::Value;
 use tauri::{AppHandle, Manager};
 
-use super::outbox::Pending;
-use super::settle::{request_of, Step};
+use super::outbox::{Op, Pending};
+use super::settle::Step;
 use crate::api::wire::SyncedIncident;
 use crate::api::{Api, ApiResult};
 use crate::app::{emit_incidents, emit_team, AppState};
@@ -70,5 +71,34 @@ pub(super) fn send(api: &Api, item: &Pending) -> ApiResult<SyncedIncident> {
         "POST" => api.post(&path, &body),
         "PATCH" => api.patch(&path, &body),
         _ => api.delete(&path),
+    }
+}
+
+/// The request a queued change makes: method, path and body.
+pub(super) fn request_of(item: &Pending) -> (&'static str, String, Value) {
+    let op_id = &item.op_id;
+    match &item.op {
+        Op::Create { session_id, incident_id, source, lmu_key, fields } => {
+            let mut body = serde_json::json!({ "opId": op_id, "id": incident_id, "source": source, "fields": fields });
+            if let Some(key) = lmu_key {
+                body["lmuKey"] = Value::String(key.clone());
+            }
+            ("POST", format!("/sessions/{session_id}/incidents"), body)
+        }
+        Op::Edit { incident_id, base_version, fields } => (
+            "PATCH",
+            format!("/incidents/{incident_id}"),
+            serde_json::json!({ "opId": op_id, "baseVersion": base_version, "fields": fields }),
+        ),
+        Op::Delete { incident_id } => ("DELETE", format!("/incidents/{incident_id}?opId={op_id}"), Value::Null),
+        Op::Merge { incident_id, child_ids } => (
+            "POST",
+            format!("/incidents/{incident_id}/merge"),
+            serde_json::json!({ "opId": op_id, "childIds": child_ids }),
+        ),
+        Op::Claim { incident_id } => {
+            ("POST", format!("/incidents/{incident_id}/claim"), serde_json::json!({ "opId": op_id }))
+        }
+        Op::Unclaim { incident_id } => ("DELETE", format!("/incidents/{incident_id}/claim?opId={op_id}"), Value::Null),
     }
 }

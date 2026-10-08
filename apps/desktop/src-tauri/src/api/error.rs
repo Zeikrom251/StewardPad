@@ -12,6 +12,8 @@ pub enum ApiError {
     Unreachable(String),
     /// The API answered with an error status.
     Refused { status: u16, code: Option<String>, message: String, body: Value },
+    /// A success whose body this version can't read: the API did it, retrying won't help.
+    Unreadable { status: u16, detail: String },
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
@@ -37,7 +39,7 @@ impl ApiError {
 
     pub fn status(&self) -> Option<u16> {
         match self {
-            ApiError::Refused { status, .. } => Some(*status),
+            ApiError::Refused { status, .. } | ApiError::Unreadable { status, .. } => Some(*status),
             ApiError::Unreachable(_) => None,
         }
     }
@@ -45,7 +47,7 @@ impl ApiError {
     pub fn code(&self) -> Option<&str> {
         match self {
             ApiError::Refused { code, .. } => code.as_deref(),
-            ApiError::Unreachable(_) => None,
+            ApiError::Unreachable(_) | ApiError::Unreadable { .. } => None,
         }
     }
 
@@ -62,7 +64,7 @@ impl ApiError {
     pub fn body(&self) -> Option<&Value> {
         match self {
             ApiError::Refused { body, .. } => Some(body),
-            ApiError::Unreachable(_) => None,
+            ApiError::Unreachable(_) | ApiError::Unreadable { .. } => None,
         }
     }
 }
@@ -81,6 +83,10 @@ impl From<ApiError> for AppError {
             ApiError::Unreachable(_) => AppError::new(
                 ErrorKind::Offline,
                 "StewardPad's servers can't be reached. Check your connection and try again.",
+            ),
+            ApiError::Unreadable { .. } => AppError::new(
+                ErrorKind::Refused,
+                "StewardPad's servers answered in a way this version can't read. Update StewardPad.",
             ),
             ApiError::Refused { status: 401, .. } => {
                 AppError::new(ErrorKind::SignedOut, "You were signed out. Sign in again.")

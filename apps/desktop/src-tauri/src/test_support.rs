@@ -1,7 +1,9 @@
 //! Builders for tests only — a full Incident / StandingEntry with overridable fields, and a
 //! core in a league.
 
-use crate::api::wire::{SessionStatus, SessionView};
+use serde_json::json;
+
+use crate::api::wire::{SessionStatus, SessionView, SyncedIncident};
 use crate::core::Core;
 use crate::domain::*;
 use crate::store::{Paths, Saver, Store};
@@ -97,4 +99,22 @@ pub fn linked_core() -> Core {
     };
     core.store.team = Some(TeamLink::new("l1".into(), "Apex".into(), "u1".into(), session));
     core
+}
+
+/// The league's copy of incident `id` in session "s1", as the API sends it.
+pub fn synced(id: &str, version: u32, summary: &str) -> SyncedIncident {
+    serde_json::from_value(synced_json(id, version, summary)).expect("a synced incident")
+}
+
+pub fn synced_json(id: &str, version: u32, summary: &str) -> serde_json::Value {
+    json!({
+        "id": id, "sessionId": "s1", "sequenceNumber": 3, "source": "STEWARD",
+        "mergedIntoId": null, "mergedFromIds": [], "lmuKey": null,
+        "eventSeconds": 100.0, "loggedAtSeconds": 110.0, "lookbackApplied": 10.0,
+        "wallClock": "2026-10-05T12:00:00.000Z", "replayReference": "RACE 00:01:40 · Lap 2",
+        "cars": [], "type": "CONTACT", "status": "NOTED", "summary": summary,
+        "stewardNotes": "", "decision": "", "penalty": null, "rules": [],
+        "loggedBy": "Alex", "reviewers": ["Alex"], "version": version, "deletedAt": null,
+        "createdAt": "2026-10-05T12:00:00.000Z", "updatedAt": "2026-10-05T12:00:00.000Z"
+    })
 }

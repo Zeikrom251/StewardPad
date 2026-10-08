@@ -1,12 +1,15 @@
 //! What an answer to a queued change does to the store and the queue.
 
-use serde_json::Value;
-
 use super::outbox::{Op, Pending};
 use super::Connection;
 use crate::api::wire::SyncedIncident;
 use crate::api::{ApiError, ApiResult};
 use crate::core::Core;
+use crate::error::AppError;
+
+/// Answered 500 this many times in a row (≈ 8 minutes with the sender's pauses), a change is
+/// one the API breaks on: it would hold up every change behind it, so it stays on this PC.
+pub(super) const GIVE_UP_AFTER: u32 = 20;
 
 /// What the sender does next.
 #[derive(Debug, PartialEq, Eq)]
@@ -40,6 +43,18 @@ impl Core {
         if error.is_signed_out() {
             return Step::SignedOut;
         }
+        if let ApiError::Unreadable { detail, .. } = &error {
+            // A 2xx: the league took the change, only its answer has a shape this version can't
+            // read. Sending it again would get the same answer forever.
+            eprintln!("[sync] A change went through, but its answer couldn't be read: {detail}");
+            self.take_front(sent);
+            self.changed();
+            return Step::Next;
+        }
+        if self.keeps_failing(sent, &error) {
+            self.drop_refused(sent, &error);
+            return Step::Next;
+        }
         if error.is_transient() {
             self.team.connection = Connection::Offline;
             return Step::Retry;
@@ -53,6 +68,24 @@ impl Core {
             _ => self.drop_refused(sent, &error),
         }
         Step::Next
+    }
+
+    /// Counts the 500s (the API broke on this change, not a gateway or the network) in a row.
+    fn keeps_failing(&mut self, sent: &Pending, error: &ApiError) -> bool {
+        if error.status() != Some(500) {
+            return false;
+        }
+        let count = match &mut self.team.failing {
+            Some((op_id, count)) if *op_id == sent.op_id => {
+                *count += 1;
+                *count
+            }
+            failing => {
+                *failing = Some((sent.op_id.clone(), 1));
+                1
+            }
+        };
+        count >= GIVE_UP_AFTER
     }
 
     /// Is `sent` still at the front? A deletion from the league may have dropped it meanwhile.
@@ -108,15 +141,21 @@ impl Core {
     }
 
     /// Refused for good (deleted, merged, the session closed, a rule): the change stays on this
-    /// PC only. Deletions and merges arrive as live events, so only the rest is worth a word.
+    /// PC only, on top of whatever the league sends next. Deletions and merges arrive as live
+    /// events, so only the rest is worth a word.
     fn drop_refused(&mut self, sent: &Pending, error: &ApiError) {
         if !self.take_front(sent) {
             return;
         }
+        if let (Op::Create { incident_id, fields, .. } | Op::Edit { incident_id, fields, .. }, Some(link)) =
+            (&sent.op, self.store.team.as_mut())
+        {
+            link.outbox.keep(incident_id, fields.clone());
+        }
         self.changed();
         let code = error.code().unwrap_or("");
         eprintln!("[sync] A change was refused ({}, {code})", error.status().unwrap_or(0));
-        if matches!(code, "INCIDENT_DELETED" | "INCIDENT_MERGED" | "NOT_MERGEABLE") {
+        if matches!(code, "INCIDENT_DELETED" | "INCIDENT_MERGED") {
             return;
         }
         self.team.notice = Some(match code {
@@ -126,38 +165,11 @@ impl Core {
     }
 }
 
+/// The API's own words for a refusal; never a transport error's internals.
 fn message(error: &ApiError) -> String {
-    match error {
-        ApiError::Refused { message, .. } => message.clone(),
-        ApiError::Unreachable(detail) => detail.clone(),
-    }
+    AppError::from(error.clone()).message
 }
 
-/// The request a queued change makes: method, path and body.
-pub(super) fn request_of(item: &Pending) -> (&'static str, String, Value) {
-    let op_id = &item.op_id;
-    match &item.op {
-        Op::Create { session_id, incident_id, source, lmu_key, fields } => {
-            let mut body = serde_json::json!({ "opId": op_id, "id": incident_id, "source": source, "fields": fields });
-            if let Some(key) = lmu_key {
-                body["lmuKey"] = Value::String(key.clone());
-            }
-            ("POST", format!("/sessions/{session_id}/incidents"), body)
-        }
-        Op::Edit { incident_id, base_version, fields } => (
-            "PATCH",
-            format!("/incidents/{incident_id}"),
-            serde_json::json!({ "opId": op_id, "baseVersion": base_version, "fields": fields }),
-        ),
-        Op::Delete { incident_id } => ("DELETE", format!("/incidents/{incident_id}?opId={op_id}"), Value::Null),
-        Op::Merge { incident_id, child_ids } => (
-            "POST",
-            format!("/incidents/{incident_id}/merge"),
-            serde_json::json!({ "opId": op_id, "childIds": child_ids }),
-        ),
-        Op::Claim { incident_id } => {
-            ("POST", format!("/incidents/{incident_id}/claim"), serde_json::json!({ "opId": op_id }))
-        }
-        Op::Unclaim { incident_id } => ("DELETE", format!("/incidents/{incident_id}/claim?opId={op_id}"), Value::Null),
-    }
-}
+#[cfg(test)]
+#[path = "settle_tests.rs"]
+mod tests;

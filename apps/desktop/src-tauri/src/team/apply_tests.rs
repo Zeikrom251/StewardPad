@@ -1,22 +1,5 @@
-use serde_json::json;
-
-use crate::api::wire::SyncedIncident;
 use crate::domain::{IncidentStatus, IncidentType};
-use crate::test_support::linked_core;
-
-fn remote(id: &str, version: u32, summary: &str) -> SyncedIncident {
-    serde_json::from_value(json!({
-        "id": id, "sessionId": "s1", "sequenceNumber": 3, "source": "STEWARD",
-        "mergedIntoId": null, "mergedFromIds": [], "lmuKey": null,
-        "eventSeconds": 100.0, "loggedAtSeconds": 110.0, "lookbackApplied": 10.0,
-        "wallClock": "2026-10-05T12:00:00.000Z", "replayReference": "RACE 00:01:40 · Lap 2",
-        "cars": [], "type": "CONTACT", "status": "NOTED", "summary": summary,
-        "stewardNotes": "", "decision": "", "penalty": null, "rules": [],
-        "loggedBy": "Alex", "reviewers": ["Alex"], "version": version, "deletedAt": null,
-        "createdAt": "2026-10-05T12:00:00.000Z", "updatedAt": "2026-10-05T12:00:00.000Z"
-    }))
-    .expect("a synced incident")
-}
+use crate::test_support::{linked_core, synced as remote};
 
 #[test]
 fn a_teammates_newer_copy_lands_and_an_older_one_is_ignored() {
@@ -72,4 +55,14 @@ fn this_pcs_unsent_claim_stays_on_a_teammates_copy_and_is_queued() {
     assert_eq!(core.get("a").expect("stored").reviewers, ["Alex"]);
     let queued = core.link().expect("linked").outbox.len();
     assert_eq!(queued, 2, "the claim, then the unclaim");
+}
+
+#[test]
+fn a_change_that_does_not_fit_keeps_the_others() {
+    let mut incident = crate::test_support::incident("a", 1);
+    let mut fields = crate::api::wire::Fields::new();
+    fields.insert("summary".into(), serde_json::json!("Mine"));
+    fields.insert("status".into(), serde_json::json!("MADE_UP"));
+    crate::api::wire::overlay(&mut incident, &fields);
+    assert_eq!(incident.summary, "Mine");
 }

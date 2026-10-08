@@ -2,14 +2,19 @@
 //! its `opId` across retries (the API then answers what it did without doing it twice). An
 //! item never sent may still absorb a later edit of the same incident; once sent, it is frozen.
 
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
+pub use super::op::Op;
 use crate::api::wire::Fields;
-use crate::domain::IncidentSource;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
 pub struct Outbox {
     items: Vec<Pending>,
+    /// Changes the league refused for good, by incident: shown on top of its copy, on this PC only.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    kept: BTreeMap<String, Fields>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -20,43 +25,6 @@ pub struct Pending {
     #[serde(default)]
     pub sent: bool,
     pub op: Op,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-#[serde(rename_all = "camelCase", tag = "kind")]
-pub enum Op {
-    #[serde(rename_all = "camelCase")]
-    Create { session_id: String, incident_id: String, source: IncidentSource, lmu_key: Option<String>, fields: Fields },
-    #[serde(rename_all = "camelCase")]
-    Edit { incident_id: String, base_version: u32, fields: Fields },
-    #[serde(rename_all = "camelCase")]
-    Delete { incident_id: String },
-    #[serde(rename_all = "camelCase")]
-    Merge { incident_id: String, child_ids: Vec<String> },
-    #[serde(rename_all = "camelCase")]
-    Claim { incident_id: String },
-    #[serde(rename_all = "camelCase")]
-    Unclaim { incident_id: String },
-}
-
-impl Op {
-    pub fn incident_id(&self) -> &str {
-        match self {
-            Op::Create { incident_id, .. }
-            | Op::Edit { incident_id, .. }
-            | Op::Delete { incident_id }
-            | Op::Merge { incident_id, .. }
-            | Op::Claim { incident_id }
-            | Op::Unclaim { incident_id } => incident_id,
-        }
-    }
-
-    fn fields_mut(&mut self) -> Option<&mut Fields> {
-        match self {
-            Op::Create { fields, .. } | Op::Edit { fields, .. } => Some(fields),
-            Op::Delete { .. } | Op::Merge { .. } | Op::Claim { .. } | Op::Unclaim { .. } => None,
-        }
-    }
 }
 
 fn op_id() -> String {
@@ -98,6 +66,7 @@ impl Outbox {
         if fields.is_empty() {
             return;
         }
+        self.unkeep(id, &fields);
         if let Some(open) = self.last_for(id).filter(|item| !item.sent).and_then(|item| item.op.fields_mut()) {
             open.extend(fields);
             return;
@@ -118,7 +87,35 @@ impl Outbox {
 
     /// The league deleted the incident (or merged it away): nothing of this PC's still applies.
     pub fn forget(&mut self, id: &str) {
+        self.kept.remove(id);
         self.items.retain(|item| item.op.incident_id() != id);
+        // An unsent merge would be refused for that one child: it goes on with the others.
+        for item in self.items.iter_mut().filter(|item| !item.sent) {
+            if let Op::Merge { child_ids, .. } = &mut item.op {
+                child_ids.retain(|child| child != id);
+            }
+        }
+        self.items.retain(|item| !matches!(&item.op, Op::Merge { child_ids, .. } if child_ids.is_empty()));
+    }
+
+    /// Refused for good: the change stays on top of the league's copy, on this PC only, until
+    /// this PC changes those fields again.
+    pub fn keep(&mut self, id: &str, fields: Fields) {
+        self.kept.entry(id.to_string()).or_default().extend(fields);
+    }
+
+    fn unkeep(&mut self, id: &str, fields: &Fields) {
+        if let Some(kept) = self.kept.get_mut(id) {
+            kept.retain(|key, _| !fields.contains_key(key));
+            if kept.is_empty() {
+                self.kept.remove(id);
+            }
+        }
+    }
+
+    /// Another session: the refused changes belonged to its incidents, archived with them.
+    pub fn clear_kept(&mut self) {
+        self.kept.clear();
     }
 
     /// This PC's own write took the incident from `from` to `to`: later edits made on top of
@@ -150,11 +147,14 @@ impl Outbox {
                 _ => {}
             }
         }
+        if let Some(kept) = self.kept.remove(from) {
+            self.kept.insert(to.to_string(), kept);
+        }
     }
 
     /// The fields of an incident the league hasn't confirmed: they stay on top of its copy.
     pub fn pending_fields(&self, id: &str) -> Fields {
-        let mut fields = Fields::new();
+        let mut fields = self.kept.get(id).cloned().unwrap_or_default();
         for item in self.items.iter().filter(|item| item.op.incident_id() == id) {
             if let Op::Create { fields: f, .. } | Op::Edit { fields: f, .. } = &item.op {
                 fields.extend(f.iter().map(|(k, v)| (k.clone(), v.clone())));
@@ -173,7 +173,7 @@ impl Outbox {
     }
 
     pub fn has_pending(&self, id: &str) -> bool {
-        self.items.iter().any(|item| item.op.incident_id() == id)
+        self.kept.contains_key(id) || self.items.iter().any(|item| item.op.incident_id() == id)
     }
 }
 

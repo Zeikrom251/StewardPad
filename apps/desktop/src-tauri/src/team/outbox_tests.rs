@@ -1,6 +1,7 @@
 use serde_json::json;
 
 use super::*;
+use crate::domain::IncidentSource;
 
 fn fields(pairs: &[(&str, serde_json::Value)]) -> Fields {
     pairs.iter().map(|(k, v)| (k.to_string(), v.clone())).collect()
@@ -93,9 +94,37 @@ fn a_claim_and_an_unclaim_ask_the_league_with_their_op_id() {
     outbox.push(Op::Unclaim { incident_id: "a".into() });
     assert_eq!(outbox.pending_claim("a"), Some(false), "the latest one counts");
     let claim = outbox.pop_front().expect("queued");
-    let (method, path, body) = crate::team::settle::request_of(&claim);
+    let (method, path, body) = crate::team::sender::request_of(&claim);
     assert_eq!((method, path.as_str(), body), ("POST", "/incidents/a/claim", json!({ "opId": claim.op_id })));
     let unclaim = outbox.pop_front().expect("queued");
-    let (method, path, _) = crate::team::settle::request_of(&unclaim);
+    let (method, path, _) = crate::team::sender::request_of(&unclaim);
     assert_eq!((method, path), ("DELETE", format!("/incidents/a/claim?opId={}", unclaim.op_id)));
+}
+
+#[test]
+fn a_child_the_league_deleted_leaves_the_unsent_merge_and_an_empty_merge_goes() {
+    let mut outbox = Outbox::default();
+    outbox.push(Op::Merge { incident_id: "p".into(), child_ids: vec!["a".into(), "b".into()] });
+    outbox.forget("a");
+    assert_eq!(
+        outbox.front().map(|item| &item.op),
+        Some(&Op::Merge { incident_id: "p".into(), child_ids: vec!["b".into()] })
+    );
+    outbox.forget("b");
+    assert_eq!(outbox.len(), 0, "a merge of nothing would be refused");
+}
+
+#[test]
+fn a_refused_change_stays_on_top_until_this_pc_changes_that_field_again() {
+    let mut outbox = Outbox::default();
+    outbox.keep("a", fields(&[("summary", json!("Refused")), ("decision", json!("Kept"))]));
+    assert_eq!(outbox.len(), 0, "nothing left to send");
+    assert!(outbox.has_pending("a"));
+    outbox.edit("a", 2, fields(&[("summary", json!("Newer"))]));
+    let pending = outbox.pending_fields("a");
+    assert_eq!((pending["summary"].clone(), pending["decision"].clone()), (json!("Newer"), json!("Kept")));
+    outbox.pop_front();
+    assert_eq!(outbox.pending_fields("a").get("summary"), None, "the newer value is the league's now");
+    outbox.forget("a");
+    assert!(!outbox.has_pending("a"));
 }

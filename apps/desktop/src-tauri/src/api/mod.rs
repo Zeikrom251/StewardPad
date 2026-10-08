@@ -162,7 +162,8 @@ fn answer<T: DeserializeOwned>(response: Response<Body>) -> ApiResult<T> {
     if !response.status().is_success() {
         return Err(refusal(response));
     }
+    let status = response.status().as_u16();
     let text = read_text(response)?;
     let text = if text.trim().is_empty() { "null" } else { &text };
-    serde_json::from_str(text).map_err(|e| ApiError::Unreachable(format!("unexpected answer: {e}")))
+    serde_json::from_str(text).map_err(|e| ApiError::Unreadable { status, detail: e.to_string() })
 }

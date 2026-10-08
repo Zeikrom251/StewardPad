@@ -45,15 +45,15 @@ pub fn changed_fields(before: &Incident, after: &Incident) -> Fields {
 }
 
 /// Puts `fields` on the incident: a teammate's copy keeps this PC's unsent changes on top.
+/// One field at a time: a value that no longer fits loses only itself, never the others.
 pub fn overlay(incident: &mut Incident, fields: &Fields) {
-    if fields.is_empty() {
-        return;
-    }
-    let mut map = as_map(incident);
-    map.extend(fields.iter().map(|(key, value)| (key.clone(), value.clone())));
-    match serde_json::from_value(Value::Object(map)) {
-        Ok(merged) => *incident = merged,
-        Err(error) => eprintln!("[sync] Could not keep this PC's changes on #{}: {error}", incident.sequence_number),
+    for (key, value) in fields {
+        let mut map = as_map(incident);
+        map.insert(key.clone(), value.clone());
+        match serde_json::from_value(Value::Object(map)) {
+            Ok(merged) => *incident = merged,
+            Err(error) => eprintln!("[sync] Could not keep this PC's {key} on #{}: {error}", incident.sequence_number),
+        }
     }
 }
 

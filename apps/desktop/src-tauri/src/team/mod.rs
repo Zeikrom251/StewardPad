@@ -11,6 +11,7 @@ pub mod leagues;
 mod link;
 mod listener;
 pub mod members;
+mod op;
 mod outbox;
 mod record;
 mod sender;
@@ -48,6 +49,8 @@ pub struct TeamLive {
     pub wake: Option<Sender<()>>,
     /// Hands each frame to the uploader while this PC streams.
     pub frames: Option<SyncSender<TimingFrame>>,
+    /// The queued change the API keeps answering 500 to, and how many times in a row.
+    pub failing: Option<(String, u32)>,
 }
 
 pub struct Streaming {
