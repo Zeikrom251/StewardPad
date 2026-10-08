@@ -8,10 +8,14 @@ use crate::incidents::mark;
 impl Core {
     /// An answer or a live event. True when the list changed.
     pub(crate) fn apply_remote(&mut self, remote: SyncedIncident) -> bool {
-        let Some(link) = self.store.team.as_mut() else { return false };
-        if link.session_id() != Some(remote.session_id.as_str()) {
+        if self.link().and_then(|link| link.session_id()) != Some(remote.session_id.as_str()) {
             return false;
         }
+        // The league has this contact (or deleted it): this PC's own feed never logs it again.
+        if let Some(key) = &remote.lmu_key {
+            self.store.mark_lmu_key_seen(key);
+        }
+        let Some(link) = self.store.team.as_mut() else { return false };
         if remote.deleted_at.is_some() {
             link.outbox.forget(&remote.id);
             let deleted = self.store.delete(&remote.id);

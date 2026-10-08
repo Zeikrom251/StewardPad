@@ -59,6 +59,20 @@ fn this_pcs_unsent_claim_stays_on_a_teammates_copy_and_is_queued() {
 }
 
 #[test]
+fn a_league_copy_of_an_lmu_contact_is_never_ingested_again_here() {
+    let mut core = linked_core();
+    let mut contact = remote("a", 1, "");
+    contact.lmu_key = Some("4|Immovable@12150".into());
+    let mut removed = remote("b", 2, "");
+    removed.lmu_key = Some("5|Immovable@13000".into());
+    removed.deleted_at = Some("2026-10-05T12:05:00.000Z".into());
+    core.apply_remote(contact);
+    core.apply_remote(removed);
+    assert!(core.store.has_seen_lmu_key("4|Immovable@12150"));
+    assert!(core.store.has_seen_lmu_key("5|Immovable@13000"), "even one the league deleted");
+}
+
+#[test]
 fn a_snapshot_of_a_session_this_pc_no_longer_follows_changes_nothing() {
     let mut core = linked_core();
     core.apply_remote(remote("a", 1, "Turn 1"));
