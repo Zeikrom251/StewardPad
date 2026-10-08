@@ -14,6 +14,8 @@ import { AnnouncePage } from './pages/announce/AnnouncePage'
 import { ReportsPage } from './pages/reports/ReportsPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
 import { KeysPage } from './pages/settings/Shortcuts'
+import { TeamPage } from './pages/team/TeamPage'
+import { GateScreen, InviteDialog, useAccountFlow, useScreen } from './team/gate/Gate'
 import { WorkspaceProvider, useWorkspace, type Page } from './workspace/Workspace'
 import { useShortcuts } from './workspace/useShortcuts'
 import { useApplyDisplay } from './workspace/useDisplay'
@@ -26,15 +28,27 @@ const PAGES: Record<Page, ComponentType> = {
   rules: RulesPage,
   reports: ReportsPage,
   announce: AnnouncePage,
+  team: TeamPage,
   keys: KeysPage,
   settings: SettingsPage,
 }
 
 function Window() {
   const { page } = useWorkspace()
-  useShortcuts()
+  const screen = useScreen()
+  useShortcuts(!screen)
   useApplyDisplay()
+  useAccountFlow()
   const Content = PAGES[page]
+  if (screen) {
+    return (
+      <div className={styles.window}>
+        <TitleBar minimal />
+        <GateScreen screen={screen} />
+        <InviteDialog />
+      </div>
+    )
+  }
   return (
     <div className={styles.window}>
       <TitleBar />
@@ -46,6 +60,7 @@ function Window() {
       </div>
       <StatusBar />
       <CommandPalette />
+      <InviteDialog />
     </div>
   )
 }

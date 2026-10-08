@@ -77,3 +77,44 @@
     text-decoration: underline;
   }
 }
+
+.item[data-link='streaming'] {
+  color: var(--color-text);
+  --dot: var(--color-accent);
+}
+
+// Timing from a teammate's stream: blue, never your own source's green (pages/race/TimingSource).
+.item[data-link='stream'] {
+  color: var(--color-text);
+  --dot: var(--color-status-noted);
+}
+
+.sync {
+  composes: item;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+
+  &[data-tone='good'] {
+    color: var(--color-status-no-further-action);
+  }
+
+  &[data-tone='busy'] {
+    color: var(--color-status-noted);
+  }
+
+  &[data-tone='warn'] {
+    color: var(--color-status-under-investigation);
+  }
+
+  &[data-tone='off'] {
+    color: var(--color-text-muted);
+  }
+}
+
+.teamNotice {
+  composes: notice;
+  color: var(--color-status-under-investigation);
+}

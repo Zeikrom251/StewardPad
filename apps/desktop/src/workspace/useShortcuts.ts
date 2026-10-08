@@ -73,16 +73,20 @@ function onKeyDown(event: KeyboardEvent, c: Context): void {
   }
 }
 
-/** The keyboard layer (Settings → Keyboard): one window listener for the app's life. */
-export function useShortcuts(): void {
+/**
+ * The keyboard layer (Settings → Keyboard): one window listener for the app's life. Off while
+ * a full-window screen (welcome, sign-in, leagues) shows: Space there is typing, not logging.
+ */
+export function useShortcuts(enabled: boolean): void {
   const live = useLive()
   const ws = useWorkspace()
   const act = useIncidentActions()
-  const latest = useRef<Context>({ live, ws, act })
-  latest.current = { live, ws, act }
+  const latest = useRef<Context & { enabled: boolean }>({ live, ws, act, enabled })
+  latest.current = { live, ws, act, enabled }
 
   useEffect(() => {
-    const listener = (event: KeyboardEvent) => onKeyDown(event, latest.current)
+    const listener = (event: KeyboardEvent) =>
+      latest.current.enabled && onKeyDown(event, latest.current)
     window.addEventListener('keydown', listener)
     return () => window.removeEventListener('keydown', listener)
   }, [])

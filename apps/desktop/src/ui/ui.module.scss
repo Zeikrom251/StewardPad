@@ -162,3 +162,12 @@
     color: var(--color-status-under-investigation);
   }
 }
+
+// Controls side by side, in a card or a settings row (not a page toolbar).
+.hstack {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}

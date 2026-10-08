@@ -29,5 +29,12 @@ if (testFiles.length === 0) {
   process.exit(0)
 }
 
-const result = spawnSync('tsx', ['--test', ...testFiles], { stdio: 'inherit' })
+// The desktop's tsconfig gives tsx the automatic JSX runtime, for tests that render a component.
+const result = spawnSync(
+  'tsx',
+  ['--tsconfig', 'apps/desktop/tsconfig.json', '--test', ...testFiles],
+  {
+    stdio: 'inherit',
+  },
+)
 process.exit(result.status ?? 1)

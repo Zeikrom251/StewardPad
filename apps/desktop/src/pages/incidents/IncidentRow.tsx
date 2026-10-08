@@ -5,9 +5,10 @@ import { formatHms } from '../../lib/format'
 import { TYPE_LABEL } from '../../lib/labels'
 import { MergedTag, Plate, ServedTag, SourceTag, StatusChip, cx } from '../../ui/primitives'
 import ui from '../../ui/ui.module.scss'
+import { ReviewerStack } from '../../team/ReviewerStack'
 import styles from './IncidentsPage.module.scss'
 
-export const HEADERS = ['', '#', 'Time', 'Incident', 'Status', 'Source']
+export const HEADERS = ['', '#', 'Time', 'Incident', 'Status', 'Claimed', 'Source']
 
 /** Two-line review row. The box ticks it for bulk actions; the rest opens the inspector. */
 export function IncidentRow({
@@ -68,6 +69,9 @@ export function IncidentRow({
       <span className={styles.status}>
         <StatusChip status={incident.status} />
         <ServedTag incident={incident} />
+      </span>
+      <span>
+        <ReviewerStack names={incident.reviewers} />
       </span>
       <span>
         <SourceTag source={incident.source} />

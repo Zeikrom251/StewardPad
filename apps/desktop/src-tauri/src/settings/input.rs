@@ -19,6 +19,7 @@ pub struct ConfigInput {
     pub display: Option<DisplayPrefs>,
     /// Replaces the Discord announcement settings at once.
     pub discord: Option<DiscordSettings>,
+    pub welcomed: Option<bool>,
 }
 
 impl ConfigInput {

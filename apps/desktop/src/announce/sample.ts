@@ -36,7 +36,7 @@ export const SAMPLE_INCIDENT: Incident = {
   penalty: { type: 'TIME_PENALTY', seconds: 5, appliedTo: '38', served: false, notes: '' },
   rules: [{ code: '3.3.c', title: 'Causing a collision is prohibited.' }],
   loggedBy: 'Steward',
-  reviewedBy: 'Steward',
+  reviewers: ['Steward'],
   createdAt: '',
   updatedAt: '',
 }

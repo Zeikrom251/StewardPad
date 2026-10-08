@@ -1,6 +1,6 @@
 //! Incidents and what they hold: cars, penalty, rules.
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -136,7 +136,39 @@ pub struct Incident {
     #[serde(default)]
     pub rules: Vec<RuleRef>,
     pub logged_by: String,
-    pub reviewed_by: Option<String>,
+    /// The stewards on it, in the order they claimed it: a claim or an edit adds one, and each
+    /// removes only their own. An older file's single `reviewedBy` reads as the first claim.
+    #[serde(default, alias = "reviewedBy", deserialize_with = "names")]
+    pub reviewers: Vec<String>,
     pub created_at: String,
     pub updated_at: String,
+    /// The league's version of it (team sync): 0 while it exists on this PC only.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub version: u32,
+    /// Two stewards changed the same field: this PC's newer edit was kept.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub edited_twice: bool,
 }
+
+fn is_zero(value: &u32) -> bool {
+    *value == 0
+}
+
+/// `["A", "B"]`, or an older file's `"A"` or `null`.
+fn names<'de, D: Deserializer<'de>>(de: D) -> Result<Vec<String>, D::Error> {
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum Names {
+        Many(Vec<String>),
+        One(String),
+    }
+    Ok(match Option::<Names>::deserialize(de)? {
+        Some(Names::Many(names)) => names,
+        Some(Names::One(name)) => vec![name],
+        None => Vec::new(),
+    })
+}
+
+#[cfg(test)]
+#[path = "incident_tests.rs"]
+mod tests;

@@ -1,0 +1,93 @@
+@use '../../styles/mixins' as *;
+
+// The full-window screens before the race (boards 02 to 04b): no rail, no status bar.
+.page {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  padding: 40px 48px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px 30px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+
+  h2 {
+    font: 600 22px/1.2 var(--font-ui);
+  }
+}
+
+.lead {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.label {
+  @include label;
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.discord {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 40px;
+  border-radius: 6px;
+  background: #5865f2;
+  color: #fff;
+  font: 600 14px var(--font-ui);
+
+  &:hover:not(:disabled) {
+    background: #4752c4;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.error {
+  font-size: 13px;
+  color: var(--color-accent);
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-faint);
+}
+
+.tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

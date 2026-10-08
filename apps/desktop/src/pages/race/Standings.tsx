@@ -8,6 +8,7 @@ import ui from '../../ui/ui.module.scss'
 import { useWorkspace } from '../../workspace/Workspace'
 import { useDisplay } from '../../workspace/useDisplay'
 import { StandingsHead, StandingsRow } from './StandingsRow'
+import { TimingSource } from './TimingSource'
 import { visibleColumns } from './standingsColumns'
 import styles from './Standings.module.scss'
 
@@ -76,6 +77,7 @@ export function Standings({
         )}
         <ClassFilter standings={standings} value={carClass} onChange={setCarClass} />
         <span className={ui.grow} />
+        <TimingSource />
         <label className={cx(ui.field, styles.search)}>
           <Icon name="search" size={14} className={ui.faint} />
           <input

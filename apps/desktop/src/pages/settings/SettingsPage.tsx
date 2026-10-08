@@ -4,6 +4,7 @@ import { useLive } from '../../backend/LiveProvider'
 import { cx } from '../../ui/primitives'
 import ui from '../../ui/ui.module.scss'
 import { useWorkspace } from '../../workspace/Workspace'
+import { AccountGroup } from './AccountGroup'
 import { DisplayGroup } from './DisplayGroup'
 import { Group, Row, SourceGroup, StorageGroup } from './SettingsGroups'
 import { LookbackSetting } from './LookbackSetting'
@@ -48,8 +49,16 @@ export function SettingsPage() {
           <h1>Settings</h1>
           <span className={ui.muted}>Changes save immediately.</span>
         </div>
+        <AccountGroup live={live} />
         <Group label="Steward">
-          <Row label="Your name" help="Stamped as “Logged by” on every incident you create.">
+          <Row
+            label="Your name"
+            help={
+              live.team.leagueId
+                ? 'Stamped as “Logged by” when stewarding on your own. In a league, your Discord name is.'
+                : 'Stamped as “Logged by” on every incident you create.'
+            }
+          >
             <StewardName current={live.config.stewardName} />
           </Row>
         </Group>

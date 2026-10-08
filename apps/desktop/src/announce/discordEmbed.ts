@@ -82,7 +82,7 @@ function fields(incident: Incident, status: AnnouncedStatus, s: DiscordSettings)
         ? `**${penaltyText(penalty)}** for car ${penalty.appliedTo}${car ? ` (${car.driverName})` : ''}`
         : '',
     ],
-    [s.fields.reviewedBy, 'Reviewed by', incident.reviewedBy ?? ''],
+    [s.fields.reviewedBy, 'Reviewed by', incident.reviewers.join(', ')],
   ]
   return all
     .filter(([shown, , value]) => shown && value !== '')

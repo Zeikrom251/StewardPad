@@ -9,6 +9,7 @@ use crate::domain::Incident;
 use crate::lmu::AdapterName;
 use crate::rulebook::Rulebook;
 use crate::settings::{DiscordSettings, DisplayPrefs};
+use crate::team::TeamLink;
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -30,6 +31,9 @@ pub struct PersistedConfig {
     pub display: DisplayPrefs,
     #[serde(default)]
     pub discord: DiscordSettings,
+    /// The welcome screen (with your league, or on your own) was answered.
+    #[serde(default)]
+    pub welcomed: bool,
 }
 
 impl Default for PersistedConfig {
@@ -43,6 +47,7 @@ impl Default for PersistedConfig {
             rulebook: None,
             display: DisplayPrefs::default(),
             discord: DiscordSettings::default(),
+            welcomed: false,
         }
     }
 }
@@ -59,6 +64,9 @@ pub struct PersistedState {
     /// stops a restart or reconnect from re-ingesting everything. Absent on older files.
     #[serde(default)]
     pub seen_lmu_collision_keys: Vec<String>,
+    /// The league session these incidents sync with, and the changes not yet sent (Team).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team: Option<TeamLink>,
 }
 
 pub struct Store {
@@ -67,6 +75,7 @@ pub struct Store {
     seen_lmu_keys: HashSet<String>,
     next_sequence_number: u32,
     pub config: PersistedConfig,
+    pub team: Option<TeamLink>,
 }
 
 impl Store {
@@ -76,6 +85,7 @@ impl Store {
             next_sequence_number: 1,
             config: PersistedConfig::default(),
             seen_lmu_collision_keys: Vec::new(),
+            team: None,
         })
     }
 
@@ -90,6 +100,7 @@ impl Store {
             seen_lmu_keys: state.seen_lmu_collision_keys.into_iter().collect(),
             next_sequence_number: state.next_sequence_number,
             config: state.config,
+            team: state.team.map(TeamLink::restored),
         }
     }
 
@@ -99,6 +110,7 @@ impl Store {
             next_sequence_number: self.next_sequence_number,
             config: self.config.clone(),
             seen_lmu_collision_keys: self.seen_lmu_keys.iter().cloned().collect(),
+            team: self.team.clone(),
         }
     }
 
@@ -108,6 +120,11 @@ impl Store {
 
     pub fn get(&self, id: &str) -> Option<&Incident> {
         self.incidents.iter().find(|i| i.id == id)
+    }
+
+    /// The league numbered an incident: this PC's next provisional number comes after it.
+    pub fn note_sequence(&mut self, sequence: u32) {
+        self.next_sequence_number = self.next_sequence_number.max(sequence + 1);
     }
 
     pub fn next_sequence(&mut self) -> u32 {

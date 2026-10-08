@@ -1,0 +1,33 @@
+// Where the standings come from (board 05). Blue is the league's stream, as in the status bar.
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  flex: none;
+  max-width: 40%; // a long display name ellipsizes; the full text is in the tooltip
+  color: var(--color-text-faint);
+  white-space: nowrap;
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  b {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  svg {
+    flex: none;
+  }
+
+  &[data-from='stream'] svg {
+    color: var(--color-status-noted);
+  }
+
+  &[data-from='streaming'] svg {
+    color: var(--color-accent);
+  }
+}

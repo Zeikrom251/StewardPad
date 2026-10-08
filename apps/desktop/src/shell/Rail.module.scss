@@ -64,3 +64,10 @@
   font: 700 10px/16px var(--font-ui);
   text-align: center;
 }
+
+.name {
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

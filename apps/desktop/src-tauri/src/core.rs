@@ -1,9 +1,11 @@
 //! The app's one piece of shared state: the store plus the live session and standings.
 //! Lives behind a Mutex (see app/); every mutation schedules a debounced save.
 
+use crate::account::AccountState;
 use crate::domain::{SessionInfo, StandingEntry};
 use crate::error::{AppError, AppResult};
 use crate::store::{disk, Paths, PersistedState, Saver, Store};
+use crate::team::TeamLive;
 use crate::text::{slugify, UtcTime};
 
 pub struct Core {
@@ -15,11 +17,23 @@ pub struct Core {
     pub(crate) last_session: Option<SessionInfo>,
     pub(crate) paths: Paths,
     saver: Saver,
+    /// The signed-in account (Team), in memory only.
+    pub(crate) account: AccountState,
+    pub(crate) team: TeamLive,
 }
 
 impl Core {
     pub fn new(store: Store, paths: Paths, saver: Saver) -> Self {
-        Self { store, session: SessionInfo::disconnected(), standings: Vec::new(), last_session: None, paths, saver }
+        Self {
+            store,
+            session: SessionInfo::disconnected(),
+            standings: Vec::new(),
+            last_session: None,
+            paths,
+            saver,
+            account: AccountState::default(),
+            team: TeamLive::default(),
+        }
     }
 
     /// Call after every store mutation: the saver writes the full state 500 ms later.
@@ -44,11 +58,18 @@ impl Core {
         if !self.store.all().is_empty() {
             let file = format!("{}-{}.json", UtcTime::now().archive_stamp(), slugify(track_name));
             let target = self.archive_dir().join(file);
-            disk::copy_ensuring_dir(&self.paths.current_session, &target)
-                .map_err(|e| AppError::io("Archiving the session failed", e))?;
+            self.write_archive(&target).map_err(|e| AppError::io("Archiving the session failed", e))?;
             eprintln!("[store] Archived {} incidents to {}", self.store.all().len(), target.display());
         }
         self.store.clear_incidents();
         self.flush()
+    }
+
+    /// The session as a record in the archive folder. Who this PC is in a league, and the
+    /// changes it hadn't sent, stay with the live session.
+    pub(crate) fn write_archive(&self, target: &std::path::Path) -> std::io::Result<()> {
+        let mut archived = self.snapshot();
+        archived.team = None;
+        disk::write_ensuring_dir(target, &archived)
     }
 }

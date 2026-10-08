@@ -1,4 +1,5 @@
-//! The state Tauri manages: the core behind its lock, and the running LMU adapter.
+//! The state Tauri manages: the core behind its lock, the running LMU adapter, the API client
+//! and the team engine. Background threads reach it through `app.state::<AppState>()`.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
@@ -6,9 +7,13 @@ use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use tauri::AppHandle;
 
 use super::events::{emit, emit_live, emit_lmu_outcome};
+use crate::account::AccountView;
+use crate::api::Api;
 use crate::core::Core;
 use crate::lmu::{self, AdapterName};
 use crate::settings::AppConfig;
+use crate::team::engine::Engine;
+use crate::team::TeamView;
 
 pub type SharedCore = Arc<Mutex<Core>>;
 
@@ -16,11 +21,23 @@ pub struct AppState {
     pub(super) core: SharedCore,
     /// The stop flag of the adapter thread currently feeding the core.
     pub(super) lmu: Mutex<Arc<AtomicBool>>,
+    /// The StewardPad API (Team), holding the account's token in memory.
+    pub api: Api,
+    /// The team threads (team/engine.rs).
+    pub engine: Mutex<Engine>,
 }
 
 impl AppState {
     pub fn lock(&self) -> MutexGuard<'_, Core> {
         lock(&self.core)
+    }
+
+    pub fn account_view(&self) -> AccountView {
+        self.lock().account.view()
+    }
+
+    pub fn team_view(&self) -> TeamView {
+        self.lock().team_view()
     }
 
     /// Settings → Data source: stops the running adapter and starts the other one. The core

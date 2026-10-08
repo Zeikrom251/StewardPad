@@ -1,3 +1,5 @@
+mod account;
+mod api;
 mod app;
 mod commands;
 mod core;
@@ -10,6 +12,7 @@ mod rulebook;
 mod settings;
 mod share;
 mod store;
+mod team;
 #[cfg(test)]
 mod test_support;
 mod text;
@@ -29,6 +32,9 @@ fn avoid_webkit_gpu_freeze() {
 pub fn run() {
     avoid_webkit_gpu_freeze();
     tauri::Builder::default()
+        // First: a second launch (a stewardpad:// link) hands its link to this window and exits.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| app::links::focus(app)))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(app::setup)
@@ -41,6 +47,8 @@ pub fn run() {
             commands::incidents::delete_incident,
             commands::incidents::delete_incidents,
             commands::incidents::merge_incidents,
+            commands::incidents::claim_incident,
+            commands::incidents::unclaim_incident,
             commands::incidents::archive_session,
             commands::incidents::flush_session,
             commands::incidents::import_sessions,
@@ -57,6 +65,36 @@ pub fn run() {
             commands::exports::save_session_file,
             commands::exports::save_results_json,
             commands::exports::save_html,
+            commands::account::account_get,
+            commands::account::account_sign_in,
+            commands::account::account_cancel_sign_in,
+            commands::account::account_redeem,
+            commands::account::account_refresh,
+            commands::account::account_sign_out,
+            commands::account::account_subscription,
+            commands::account::account_request_subscription,
+            commands::account::account_cancel_request,
+            commands::account::account_export,
+            commands::account::account_delete,
+            commands::team::team_get,
+            commands::team::team_leagues,
+            commands::team::team_create_league,
+            commands::team::team_preview_invite,
+            commands::team::team_join,
+            commands::team::team_enter,
+            commands::team::team_leave_link,
+            commands::team::team_sessions,
+            commands::team::team_open_session,
+            commands::team::team_switch_session,
+            commands::team::team_set_session_status,
+            commands::team::team_start_stream,
+            commands::team::team_stop_stream,
+            commands::team::team_invite,
+            commands::team::team_change_role,
+            commands::team::team_remove_member,
+            commands::team::team_hand_over,
+            commands::team::team_rename_league,
+            commands::team::team_delete_league,
         ])
         .run(tauri::generate_context!())
         .expect("error while running StewardPad");

@@ -1,6 +1,7 @@
 import { useLive } from '../backend/LiveProvider'
 import { Icon, type IconName } from '../icons'
 import { useWorkspace, type Page } from '../workspace/Workspace'
+import { AccountTile } from './AccountTile'
 import styles from './Rail.module.scss'
 
 const TOP: Array<[Page, IconName, string]> = [
@@ -10,6 +11,7 @@ const TOP: Array<[Page, IconName, string]> = [
   ['rules', 'book', 'Rules'],
   ['reports', 'file', 'Reports'],
   ['announce', 'radio', 'Discord'],
+  ['team', 'users', 'Team'],
 ]
 const BOTTOM: Array<[Page, IconName, string]> = [
   ['keys', 'keyboard', 'Keys'],
@@ -42,6 +44,7 @@ export function Rail() {
       {TOP.map(item)}
       <div className={styles.spacer} />
       {BOTTOM.map(item)}
+      <AccountTile />
     </nav>
   )
 }

@@ -10,6 +10,7 @@
 
 .small {
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .swatch {
@@ -19,12 +20,21 @@
   background: var(--tone);
 }
 
+// Narrow windows: the search box gives way first, so the timing source stays readable.
 .search {
-  width: 240px;
+  flex: 0 1 240px;
+  min-width: 120px;
   background: var(--color-surface);
 
   svg {
     color: var(--color-text-faint);
+  }
+}
+
+// Under 1440 px the timing source needs the room more than the Ctrl F hint does.
+@media (max-width: 1439px) {
+  .search kbd {
+    display: none;
   }
 }
 
