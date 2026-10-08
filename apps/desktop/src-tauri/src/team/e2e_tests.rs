@@ -80,8 +80,9 @@ pub(super) fn events(pc: &Pc, league: &MyLeague) -> Receiver<SseEvent> {
 /// Applies the live events that arrive within a second or two.
 pub(super) fn drain(pc: &mut Pc, incoming: &Receiver<SseEvent>) -> Vec<String> {
     let mut names = Vec::new();
+    let league_id = pc.core.link().map(|link| link.league_id.clone()).unwrap_or_default();
     while let Ok(event) = incoming.recv_timeout(Duration::from_millis(1500)) {
-        pc.core.on_live_event(&event);
+        pc.core.on_live_event(&league_id, &event);
         names.push(event.name);
     }
     names

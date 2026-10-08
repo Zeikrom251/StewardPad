@@ -25,8 +25,13 @@ fn parse<T: DeserializeOwned>(event: &SseEvent) -> Option<T> {
 }
 
 impl Core {
-    pub(super) fn on_live_event(&mut self, event: &SseEvent) -> Changed {
+    /// An event from `league_id`'s stream. A listener of a league this PC has just left may
+    /// still be reading: its events (and their revisions) aren't this link's.
+    pub(super) fn on_live_event(&mut self, league_id: &str, event: &SseEvent) -> Changed {
         let mut changed = Changed::default();
+        if self.link().is_none_or(|link| link.league_id != league_id) {
+            return changed;
+        }
         match event.name.as_str() {
             "hello" => self.on_hello(event, &mut changed),
             "incident" => self.on_incident(event, &mut changed),
@@ -105,6 +110,13 @@ impl Core {
         self.team.remote = None;
     }
 
+    /// The league deleted the session this PC follows: the league link stays, with no session.
+    pub(super) fn lose_session(&mut self) {
+        let Some(session) = self.link_mut().and_then(|link| link.session.take()) else { return };
+        self.team.notice = Some(format!("{} was deleted by a head steward", session.title));
+        self.changed();
+    }
+
     fn on_session(&mut self, event: &SseEvent, changed: &mut Changed) {
         let Some(update) = parse::<SessionEvent>(event) else { return };
         let Some(link) = self.link_mut() else { return };
@@ -113,12 +125,10 @@ impl Core {
         }
         changed.team = true;
         if update.change == "deleted" {
-            link.session = None;
-            self.team.notice = Some(format!("{} was deleted by a head steward", update.session.title));
-        } else {
-            let incidents = link.session.as_ref().map_or(0, |s| s.incidents);
-            link.session = Some(crate::api::wire::SessionView { incidents, ..update.session });
+            return self.lose_session();
         }
+        let incidents = link.session.as_ref().map_or(0, |s| s.incidents);
+        link.session = Some(crate::api::wire::SessionView { incidents, ..update.session });
         self.changed();
     }
 
@@ -141,3 +151,7 @@ impl Core {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "events_tests.rs"]
+mod tests;

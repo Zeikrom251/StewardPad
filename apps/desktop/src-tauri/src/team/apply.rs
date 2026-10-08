@@ -41,8 +41,12 @@ impl Core {
 
     /// Joining or rejoining the session: the league's copy of every incident. An incident the
     /// league once had and no longer knows (its session was purged) leaves this PC too, unless
-    /// this PC still has changes for it.
-    pub(crate) fn apply_snapshot(&mut self, snapshot: SessionIncidents) {
+    /// this PC still has changes for it. A snapshot of `session_id` this PC no longer follows (an
+    /// old listener's late answer) changes nothing.
+    pub(crate) fn apply_snapshot(&mut self, session_id: &str, snapshot: SessionIncidents) {
+        if self.link().and_then(|link| link.session_id()) != Some(session_id) {
+            return;
+        }
         let known: Vec<String> = snapshot.incidents.iter().map(|i| i.id.clone()).collect();
         for incident in snapshot.incidents {
             self.apply_remote(incident);

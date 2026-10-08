@@ -92,26 +92,42 @@ pub fn left(app: &AppHandle, reason: &str) {
 }
 
 /// The listener's first step: the league (roster, this PC's role) and the session's incidents.
-pub(super) fn load(app: &AppHandle) -> Result<(), ApiError> {
+/// Applied only while this PC is still in `league_id`: the listener may be an old one.
+pub(super) fn load(app: &AppHandle, league_id: &str) -> Result<(), ApiError> {
     let state = app.state::<AppState>();
-    let Some((league_id, session_id)) =
-        state.lock().link().map(|l| (l.league_id.clone(), l.session_id().map(str::to_string)))
-    else {
-        return Ok(());
-    };
+    let session_id = state.lock().link().and_then(|l| l.session_id().map(str::to_string));
     let league: LeagueView = state.api.get(&format!("/leagues/{league_id}"))?;
     let snapshot = match &session_id {
-        Some(id) => Some(state.api.get::<SessionIncidents>(&format!("/sessions/{id}/incidents"))?),
+        Some(id) => session_incidents(&state.api, id)?,
         None => None,
     };
     let mut core = state.lock();
+    if core.link().is_none_or(|link| link.league_id != league_id) {
+        return Ok(());
+    }
     core.team.league = Some(league);
-    if let Some(snapshot) = snapshot {
-        core.apply_snapshot(snapshot);
-        emit_incidents(app, &core);
+    match (session_id, snapshot) {
+        (Some(id), Some(snapshot)) => {
+            core.apply_snapshot(&id, snapshot);
+            emit_incidents(app, &core);
+        }
+        (Some(id), None) if core.link().and_then(|link| link.session_id()) == Some(id.as_str()) => {
+            core.lose_session();
+        }
+        _ => {}
     }
     emit_team(app, &core);
     Ok(())
+}
+
+/// The session's incidents; None when the league deleted the session meanwhile (its 404 is
+/// about the session, never this PC's place in the league).
+fn session_incidents(api: &Api, id: &str) -> Result<Option<SessionIncidents>, ApiError> {
+    match api.get(&format!("/sessions/{id}/incidents")) {
+        Ok(snapshot) => Ok(Some(snapshot)),
+        Err(error) if error.status() == Some(404) => Ok(None),
+        Err(error) => Err(error),
+    }
 }
 
 pub(super) fn refresh_roster(app: &AppHandle) {
@@ -123,7 +139,9 @@ pub(super) fn refresh_roster(app: &AppHandle) {
             core.team.league = Some(league);
             emit_team(app, &core);
         }
-        Err(error) => eprintln!("[sync] Could not refresh the roster: {error:?}"),
+        Err(error) => {
+            eprintln!("[sync] Could not refresh the roster ({:?}, {})", error.status(), error.code().unwrap_or(""))
+        }
     }
 }
 
@@ -140,6 +158,7 @@ impl Core {
         }
         if let Some(previous) = self.store.team.take() {
             next.outbox = previous.outbox;
+            next.outbox.clear_kept();
             if previous.league_id == next.league_id {
                 next.revision = previous.revision;
             }

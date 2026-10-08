@@ -2,8 +2,9 @@
 //! league's copy of the session first, then follows its live events, reconnecting with the last
 //! revision it applied so nothing is missed (the API ends each connection after 10 minutes).
 
+use std::io::Read;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{channel, RecvTimeoutError};
+use std::sync::mpsc::{channel, Receiver, RecvTimeoutError};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -16,18 +17,27 @@ use crate::app::{emit_incidents, emit_live, emit_team, AppState};
 
 const FIRST_RETRY: Duration = Duration::from_secs(1);
 const LONGEST_RETRY: Duration = Duration::from_secs(30);
+/// A connection that ended sooner was closed at once (a proxy, a refusal in disguise).
+const MIN_CONNECTION: Duration = Duration::from_secs(10);
 /// The API pings every 20 s: this long without a byte, the connection is dead.
 const SILENCE: Duration = Duration::from_secs(50);
 const HOLD: Duration = Duration::from_secs(5 * 60);
 
+/// Follows the league this PC is in when it starts; the engine starts another for the next.
 pub(super) fn run(app: AppHandle, stop: Arc<AtomicBool>) {
+    let Some(league_id) = app.state::<AppState>().lock().link().map(|link| link.league_id.clone()) else { return };
     let mut retry = FIRST_RETRY;
     let mut fresh = true;
     while !stop.load(Ordering::Relaxed) {
-        let loaded = if fresh { super::leagues::load(&app).map(|()| fresh = false) } else { Ok(()) };
-        let Err(error) = loaded.and_then(|()| listen(&app, &stop)) else {
-            // The API ended the connection (it does every 10 minutes): reconnect at once.
-            retry = FIRST_RETRY;
+        let started = Instant::now();
+        let loaded = if fresh { super::leagues::load(&app, &league_id).map(|()| fresh = false) } else { Ok(()) };
+        let Err(error) = loaded.and_then(|()| listen(&app, &league_id, &stop)) else {
+            if app.state::<AppState>().lock().link().is_none_or(|link| link.league_id != league_id) {
+                return;
+            }
+            let pause;
+            (pause, retry) = after_connection(started.elapsed(), retry);
+            sleep_unless_stopped(&stop, pause);
             continue;
         };
         // A revision the API doesn't know: read the whole session again.
@@ -51,6 +61,7 @@ fn failed(app: &AppHandle, error: &ApiError) -> Option<Duration> {
             core.team.connection = Connection::Inactive;
             HOLD
         }
+        // Only the league's own endpoints answer 404 here (a deleted session is load's to handle).
         (Some(404), _) => {
             drop(core);
             super::leagues::left(app, "You're no longer in this league");
@@ -65,6 +76,16 @@ fn failed(app: &AppHandle, error: &ApiError) -> Option<Duration> {
     Some(pause)
 }
 
+/// The API ends a connection every 10 minutes: reconnect at once. One that ended at once
+/// would otherwise reconnect in a tight loop: wait, longer each time.
+fn after_connection(lasted: Duration, retry: Duration) -> (Duration, Duration) {
+    if lasted >= MIN_CONNECTION {
+        (Duration::ZERO, FIRST_RETRY)
+    } else {
+        (retry, (retry * 2).min(LONGEST_RETRY))
+    }
+}
+
 fn sleep_unless_stopped(stop: &AtomicBool, pause: Duration) {
     let until = Instant::now() + pause;
     while Instant::now() < until && !stop.load(Ordering::Relaxed) {
@@ -73,30 +94,20 @@ fn sleep_unless_stopped(stop: &AtomicBool, pause: Duration) {
 }
 
 /// One connection, until the API ends it, it goes silent, or the engine stops.
-fn listen(app: &AppHandle, stop: &AtomicBool) -> Result<(), ApiError> {
+fn listen(app: &AppHandle, league_id: &str, stop: &AtomicBool) -> Result<(), ApiError> {
     let state = app.state::<AppState>();
-    let (path, revision) = {
-        let core = state.lock();
-        let Some(link) = core.link() else { return Ok(()) };
-        (format!("/leagues/{}/events", link.league_id), link.revision.clone())
+    let revision = match state.lock().link() {
+        Some(link) if link.league_id == league_id => link.revision.clone(),
+        _ => return Ok(()),
     };
-    let body = state.api.open_events(&path, Some(&revision))?;
-    // The blocking reads run on their own thread, so a dead connection can be walked away from.
-    let (lines, incoming) = channel();
-    std::thread::spawn(move || {
-        let mut stream = EventStream::new(body);
-        while let Ok(Some(line)) = stream.next_line() {
-            if lines.send(line).is_err() {
-                return;
-            }
-        }
-    });
+    let body = state.api.open_events(&format!("/leagues/{league_id}/events"), Some(&revision))?;
+    let incoming = read_in_background(body);
     let mut heard = Instant::now();
     while !stop.load(Ordering::Relaxed) {
         match incoming.recv_timeout(Duration::from_secs(1)) {
             Ok(Line::Event(event)) => {
                 heard = Instant::now();
-                apply(app, &event);
+                apply(app, league_id, &event);
             }
             Ok(Line::Heartbeat) => heard = Instant::now(),
             Err(RecvTimeoutError::Timeout) if heard.elapsed() < SILENCE => {}
@@ -107,10 +118,32 @@ fn listen(app: &AppHandle, stop: &AtomicBool) -> Result<(), ApiError> {
     Ok(())
 }
 
-fn apply(app: &AppHandle, event: &crate::api::events::SseEvent) {
+/// The blocking reads run on their own thread, so a dead connection can be walked away from.
+/// Its read then blocks until the events timeout (11 minutes): ureq has no per-read timeout,
+/// so each silent reconnect can leave one idle thread behind for that long, no more.
+fn read_in_background(body: impl Read + Send + 'static) -> Receiver<Line> {
+    let (lines, incoming) = channel();
+    std::thread::spawn(move || {
+        let mut stream = EventStream::new(body);
+        loop {
+            match stream.next_line() {
+                Ok(Some(line)) => {
+                    if lines.send(line).is_err() {
+                        return;
+                    }
+                }
+                Ok(None) => return,
+                Err(error) => return eprintln!("[sync] The live events connection broke: {error}"),
+            }
+        }
+    });
+    incoming
+}
+
+fn apply(app: &AppHandle, league_id: &str, event: &crate::api::events::SseEvent) {
     let state = app.state::<AppState>();
     let mut core = state.lock();
-    let changed = core.on_live_event(event);
+    let changed = core.on_live_event(league_id, event);
     if changed.incidents {
         emit_incidents(app, &core);
     }
@@ -127,3 +160,7 @@ fn apply(app: &AppHandle, event: &crate::api::events::SseEvent) {
         super::leagues::refresh_roster(app);
     }
 }
+
+#[cfg(test)]
+#[path = "listener_tests.rs"]
+mod tests;

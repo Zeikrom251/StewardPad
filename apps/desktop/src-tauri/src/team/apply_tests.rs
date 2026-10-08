@@ -1,3 +1,4 @@
+use crate::api::wire::SessionIncidents;
 use crate::domain::{IncidentStatus, IncidentType};
 use crate::test_support::{linked_core, synced as remote};
 
@@ -55,6 +56,16 @@ fn this_pcs_unsent_claim_stays_on_a_teammates_copy_and_is_queued() {
     assert_eq!(core.get("a").expect("stored").reviewers, ["Alex"]);
     let queued = core.link().expect("linked").outbox.len();
     assert_eq!(queued, 2, "the claim, then the unclaim");
+}
+
+#[test]
+fn a_snapshot_of_a_session_this_pc_no_longer_follows_changes_nothing() {
+    let mut core = linked_core();
+    core.apply_remote(remote("a", 1, "Turn 1"));
+    let stale = SessionIncidents { revision: "90".into(), incidents: vec![] };
+    core.apply_snapshot("s0", stale);
+    assert!(core.get("a").is_ok(), "an old listener's late answer deletes nothing");
+    assert_eq!(core.link().expect("linked").revision, "0");
 }
 
 #[test]
