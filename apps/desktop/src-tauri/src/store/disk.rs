@@ -79,11 +79,11 @@ fn set_aside_corrupt(path: &Path, reason: &str) {
     }
 }
 
-pub fn copy_ensuring_dir(from: &Path, to: &Path) -> io::Result<()> {
-    if let Some(dir) = to.parent() {
+pub fn write_ensuring_dir(path: &Path, state: &PersistedState) -> io::Result<()> {
+    if let Some(dir) = path.parent() {
         fs::create_dir_all(dir)?;
     }
-    fs::copy(from, to).map(|_| ())
+    write_state(path, state)
 }
 
 /// Coalesces bursts of mutations into one write, 500 ms after the first. Never writes

@@ -58,11 +58,18 @@ impl Core {
         if !self.store.all().is_empty() {
             let file = format!("{}-{}.json", UtcTime::now().archive_stamp(), slugify(track_name));
             let target = self.archive_dir().join(file);
-            disk::copy_ensuring_dir(&self.paths.current_session, &target)
-                .map_err(|e| AppError::io("Archiving the session failed", e))?;
+            self.write_archive(&target).map_err(|e| AppError::io("Archiving the session failed", e))?;
             eprintln!("[store] Archived {} incidents to {}", self.store.all().len(), target.display());
         }
         self.store.clear_incidents();
         self.flush()
+    }
+
+    /// The session as a record in the archive folder. Who this PC is in a league, and the
+    /// changes it hadn't sent, stay with the live session.
+    pub(crate) fn write_archive(&self, target: &std::path::Path) -> std::io::Result<()> {
+        let mut archived = self.snapshot();
+        archived.team = None;
+        disk::write_ensuring_dir(target, &archived)
     }
 }

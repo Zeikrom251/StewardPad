@@ -127,6 +127,20 @@ fn a_new_session_archives_the_old_one_and_restarts_numbering() {
 }
 
 #[test]
+fn an_archive_keeps_the_incidents_but_never_the_league_link_or_its_queue() {
+    let (mut core, dir) = core("archive-team");
+    core.store.team = crate::test_support::linked_core().store.team.take();
+    core.quick_log(QuickLogInput::default()).expect("logs");
+    core.archive("Monza").expect("archives");
+    let file = std::fs::read_dir(dir.join("archive")).expect("archive dir").next().expect("a file").expect("entry");
+    let archived: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(file.path()).expect("readable")).expect("json");
+    assert_eq!(archived["incidents"].as_array().map(Vec::len), Some(1));
+    assert!(archived.get("team").is_none(), "user id, league and unsent changes stay out of archives");
+    assert!(core.link().is_some(), "the live session is still linked");
+}
+
+#[test]
 fn clearing_keeps_lmu_keys_so_the_cumulative_feed_does_not_resurrect_incidents() {
     let (mut core, _) = core("keys");
     core.apply_lmu(update("Monza", 125.0, vec![off_track(121.5)]));

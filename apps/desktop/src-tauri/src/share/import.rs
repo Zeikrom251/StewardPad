@@ -7,7 +7,6 @@ use super::{FileReport, ImportReport, Renumbered, SessionFile, FORMAT, VERSION};
 use crate::core::Core;
 use crate::domain::SessionType;
 use crate::error::{AppError, AppResult};
-use crate::store::disk;
 use crate::text::UtcTime;
 
 // A race's worth of incidents is a few hundred KB; anything this big isn't one of ours.
@@ -70,8 +69,7 @@ impl Core {
         }
         self.flush()?;
         let target = self.archive_dir().join(format!("{}-before-import.json", UtcTime::now().archive_stamp()));
-        disk::copy_ensuring_dir(&self.paths.current_session, &target)
-            .map_err(|e| AppError::io("Backing up the session before the import failed", e))?;
+        self.write_archive(&target).map_err(|e| AppError::io("Backing up the session before the import failed", e))?;
         Ok(Some(target.display().to_string()))
     }
 }
