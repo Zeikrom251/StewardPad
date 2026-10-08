@@ -38,6 +38,10 @@ fn upload(app: &AppHandle, stream_id: &str, incoming: Receiver<TimingFrame>) {
             offline = false;
             continue;
         };
+        if error.is_signed_out() {
+            // Signed out, not a stream that ended: the account says so, and the engine stops.
+            return crate::account::service::expire(app);
+        }
         if error.is_transient() {
             if !offline {
                 eprintln!("[stream] Frames aren't getting through; still trying");

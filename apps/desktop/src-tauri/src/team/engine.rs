@@ -9,7 +9,7 @@ use std::sync::{Arc, PoisonError};
 use tauri::{AppHandle, Manager};
 
 use super::{listener, sender, Connection, TeamLive};
-use crate::app::{emit_team, AppState};
+use crate::app::{emit_live, emit_team, AppState};
 use crate::core::Core;
 
 #[derive(Default)]
@@ -26,7 +26,7 @@ pub fn reconcile(app: &AppHandle) {
     let wanted = state.api.has_token() && core.account.has_session() && core.link().is_some();
     match (engine.stop.is_some(), wanted) {
         (false, true) => engine.stop = Some(start(app, &mut core)),
-        (true, false) => stop(&mut engine, &mut core),
+        (true, false) => stop(app, &mut engine, &mut core),
         _ => {}
     }
     emit_team(app, &core);
@@ -37,7 +37,7 @@ pub fn restart(app: &AppHandle) {
     {
         let state = app.state::<AppState>();
         let mut engine = state.engine.lock().unwrap_or_else(PoisonError::into_inner);
-        stop(&mut engine, &mut state.lock());
+        stop(app, &mut engine, &mut state.lock());
     }
     reconcile(app);
 }
@@ -54,12 +54,35 @@ fn start(app: &AppHandle, core: &mut Core) -> Arc<AtomicBool> {
     stop
 }
 
-fn stop(engine: &mut Engine, core: &mut Core) {
+fn stop(app: &AppHandle, engine: &mut Engine, core: &mut Core) {
     if let Some(stop) = engine.stop.take() {
         stop.store(true, Ordering::Relaxed);
     }
-    // Drops the wake and frames channels: the sender and the uploader end with them.
-    core.team = TeamLive::default();
+    // A teammate's timing may be the clock here. `watching` can't tell any more: the link may
+    // already point at the next session.
+    if core.team.remote.is_some() && core.team.streaming.is_none() {
+        core.forget_remote_timing();
+        emit_live(app, core);
+    }
+    if let Some(streaming) = core.team.streaming.take() {
+        end_stream(app, streaming.stream_id);
+    }
+    // Drops the wake and frames channels: the sender and the uploader end with them. A notice
+    // (why the link went) outlives the engine.
+    let notice = core.team.notice.take();
+    core.team = TeamLive { notice, ..TeamLive::default() };
+}
+
+/// This PC streamed: the league hears now that the stream ended, not 30 s later when the API
+/// gives up on it. Signed out already, it can't: the API's timeout ends it then.
+fn end_stream(app: &AppHandle, stream_id: String) {
+    let app = app.clone();
+    spawn("stream-end", move || {
+        let path = format!("/streams/{stream_id}");
+        if let Err(error) = app.state::<AppState>().api.delete::<()>(&path) {
+            eprintln!("[stream] The stream will end when the API stops hearing it ({:?})", error.status());
+        }
+    });
 }
 
 fn spawn(name: &str, work: impl FnOnce() + Send + 'static) {

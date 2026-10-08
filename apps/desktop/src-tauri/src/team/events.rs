@@ -7,6 +7,7 @@ use super::Connection;
 use crate::api::events::SseEvent;
 use crate::api::wire::{Hello, IncidentEvent, MemberEvent, Presence, SessionEvent, StreamEvent};
 use crate::core::Core;
+use crate::domain::SessionInfo;
 
 /// What an event changed, so the listener emits only that.
 #[derive(Default, Debug)]
@@ -52,12 +53,18 @@ impl Core {
 
     fn on_hello(&mut self, event: &SseEvent, changed: &mut Changed) {
         let Some(hello) = parse::<Hello>(event) else { return };
+        let was_watching = self.watching();
         self.team.connection = Connection::Live;
         self.team.online = hello.online;
         self.team.stream = hello.stream;
         self.team.remote = hello.timing.and_then(|key| apply_timing(None, &key));
         changed.team = true;
         changed.live = self.show_remote_timing();
+        if was_watching && !self.watching() {
+            // The stream ended while this PC was away.
+            self.forget_remote_timing();
+            changed.live = true;
+        }
     }
 
     fn on_incident(&mut self, event: &SseEvent, changed: &mut Changed) {
@@ -101,13 +108,29 @@ impl Core {
         if mine {
             self.stop_streaming_here();
         }
+        if self.team.stream.as_ref().is_none_or(|stream| stream.id != update.stream.id) {
+            return;
+        }
         if update.reason.as_deref() == Some("dropped") {
             let at = crate::text::format_hms(self.session.elapsed_seconds);
             self.team.notice =
                 Some(format!("{}'s stream dropped: timing paused at {at}", update.stream.streamer.display_name));
         }
+        let was_watching = self.watching();
         self.team.stream = None;
         self.team.remote = None;
+        if was_watching {
+            self.forget_remote_timing();
+            changed.live = true;
+        }
+    }
+
+    /// A teammate's timing stops being the clock here. Nothing of it stays behind (their
+    /// `connected` would let this PC stream a frozen clock): this PC's own source takes over on
+    /// its next reading.
+    pub(crate) fn forget_remote_timing(&mut self) {
+        self.session = SessionInfo::disconnected();
+        self.standings.clear();
     }
 
     /// The league deleted the session this PC follows: the league link stays, with no session.
