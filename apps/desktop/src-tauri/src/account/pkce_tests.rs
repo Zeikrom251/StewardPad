@@ -23,7 +23,9 @@ fn a_code_is_read_as_typed_or_from_the_link() {
     assert_eq!(read_handoff(" 4f7k 2q9m "), Some(typed));
     let linked = read_handoff("stewardpad://signed-in?code=4F7K-2Q9M&state=abc");
     assert_eq!(linked, Some(Handoff { code: "4F7K-2Q9M".into(), state: Some("abc".into()) }));
-    for wrong in ["", "4F7K", "4F7K-2Q9M-XXXX", "stewardpad://join?code=4F7K-2Q9M", "4F7K-2Q9!"] {
+    // A link always carries the state of the sign-in it answers: one without is someone else's.
+    let stateless = "stewardpad://signed-in?code=4F7K-2Q9M";
+    for wrong in ["", "4F7K", "4F7K-2Q9M-XXXX", "stewardpad://join?code=4F7K-2Q9M", "4F7K-2Q9!", stateless] {
         assert_eq!(read_handoff(wrong), None, "{wrong}");
     }
 }

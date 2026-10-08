@@ -72,7 +72,8 @@ pub fn read_handoff(input: &str) -> Option<Handoff> {
         let param =
             |key: &str| query.split('&').find_map(|pair| pair.strip_prefix(key)?.strip_prefix('=').map(str::to_string));
         let code = param("code").filter(|code| is_code(code))?;
-        return Some(Handoff { code, state: param("state") });
+        // The website always sends the state back: a link without one isn't an answer to us.
+        return Some(Handoff { code, state: Some(param("state")?) });
     }
     is_code(input).then(|| Handoff { code: input.to_string(), state: None })
 }
