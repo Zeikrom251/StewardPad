@@ -131,6 +131,17 @@ offline, retries every 5 seconds, and incident logging keeps working the whole t
 The field mapping was confirmed against a live hosted session at Monza. If a game update moves a
 field, only the mapper needs changing; `pnpm discover` re-captures what the game exposes.
 
+**Go to.** In the inspector's When section, Go to moves the game's open replay to the incident's
+time and points its camera at the car under investigation: it reads
+`GET /rest/sessions/GetGameState` and, only if `isReplayActive`, sends
+`PUT /rest/watch/replaytime/{eventSeconds}` then `PUT /rest/watch/focus/{slotId}`
+(`lmu/rest/replay.rs`). The car is the one that caused or was reported, else the first listed,
+looked up in the standings by number and class (`inspector/followCar.ts`); a number two cars
+share leaves the camera alone. All three routes come from the game's schema; still to be
+confirmed against the game: that the replay takes seconds on the session clock (the contacts'
+`et`), and the standings' slotID in a replay. The button is hidden while the timing comes from
+the simulator.
+
 **Run StewardPad on Windows, not inside WSL.** LMU listens on the Windows loopback only, which
 WSL cannot reach: from WSL the app reports LMU offline forever. Either run it from Windows or set
 `networkingMode=mirrored` in `.wslconfig`.
