@@ -1,0 +1,25 @@
+{
+  "MultiStintState": "MONITOR_MENU",
+  "PitEntryDist": 5350.60693359375,
+  "PitState": "NONE",
+  "closeestWeatherNode": {
+    "Duration": -1,
+    "Humidity": 60,
+    "RainChance": 0,
+    "Sky": 0,
+    "StartTime": -1,
+    "Temperature": 22,
+    "WindDirection": 0,
+    "WindSpeed": 5
+  },
+  "exitGarageState": "None",
+  "gamePhase": "GPHASE_GREEN",
+  "haveILoadedAllMyTiresYet": true,
+  "inControlOfVehicle": true,
+  "inMonitor": true,
+  "isReplayActive": false,
+  "playerVehicleLoaded": true,
+  "raceFinished": false,
+  "teamVehicleState": "IN CONTROL",
+  "timeOfDay": 42036.15625
+}

@@ -5,6 +5,7 @@
 mod connection_log;
 mod mapper;
 mod parse;
+mod replay;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
@@ -14,6 +15,7 @@ use serde_json::Value;
 use super::resolver::{resolve_collisions, LmuCollision};
 use super::{LmuEvent, LmuUpdate};
 use crate::domain::StandingEntry;
+use crate::error::AppResult;
 use connection_log::ConnectionLog;
 use parse::describe_shape;
 
@@ -33,8 +35,18 @@ struct RestAdapter {
     last_standings: Vec<StandingEntry>,
 }
 
+fn base_url() -> String {
+    std::env::var("LMU_BASE_URL").unwrap_or_else(|_| "http://localhost:6397".to_string())
+}
+
+/// Moves this PC's game, if its replay is open, to `seconds` on the session clock, and its
+/// camera to the car in `slot` (the standings' slotId).
+pub fn seek_replay(seconds: f64, slot: Option<i64>) -> AppResult<()> {
+    replay::seek(&base_url(), seconds, slot)
+}
+
 pub fn run(stop: &AtomicBool, mut sink: impl FnMut(LmuEvent)) {
-    let base_url = std::env::var("LMU_BASE_URL").unwrap_or_else(|_| "http://localhost:6397".to_string());
+    let base_url = base_url();
     let agent: ureq::Agent = ureq::Agent::config_builder().timeout_global(Some(FETCH_TIMEOUT)).build().into();
     let mut adapter = RestAdapter { log: ConnectionLog::new(&base_url), base_url, agent, last_standings: Vec::new() };
     while !stop.load(Ordering::Relaxed) {

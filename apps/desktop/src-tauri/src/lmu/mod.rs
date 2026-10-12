@@ -14,6 +14,8 @@ use serde::{Deserialize, Serialize};
 use crate::domain::{SessionInfo, StandingEntry};
 use resolver::LmuCollision;
 
+pub use rest::seek_replay;
+
 pub struct LmuUpdate {
     pub session: SessionInfo,
     pub standings: Vec<StandingEntry>,

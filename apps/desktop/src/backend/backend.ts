@@ -81,6 +81,10 @@ export const backend = {
   archiveSession: () => invoke<void>('archive_session'),
   /** Writes the session now, skipping the debounce (before the updater closes the app). */
   flushSession: () => invoke<void>('flush_session'),
+  /** Moves Le Mans Ultimate's open replay to a time on the session clock (eventSeconds), and
+   * its camera to a car's slot when there is one. */
+  goToReplay: (seconds: number, slotId: number | null) =>
+    invoke<void>('go_to_replay', { seconds, slotId }),
   updateConfig: (input: UpdateConfigInput) => invoke<AppConfig>('update_config', { input }),
   /** Stops the running data source and starts the other one; saved with the session. */
   setAdapter: (adapter: AdapterName) => invoke<AppConfig>('set_adapter', { adapter }),
