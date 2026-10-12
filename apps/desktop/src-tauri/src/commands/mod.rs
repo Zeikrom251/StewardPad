@@ -4,6 +4,7 @@
 pub mod account;
 pub mod exports;
 pub mod incidents;
+pub mod replay;
 pub mod rulebook;
 pub mod settings;
 pub mod team;

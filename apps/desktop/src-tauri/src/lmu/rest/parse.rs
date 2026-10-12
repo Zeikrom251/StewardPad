@@ -44,6 +44,13 @@ pub struct RawStandingEntry {
     pub laps_behind_leader: f64,
 }
 
+/// GetGameState, read only to know whether the replay is open (tests/fixtures/live-game-state.json).
+#[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct RawGameState {
+    pub is_replay_active: bool,
+}
+
 pub struct ListParse<T> {
     pub entries: Vec<T>,
     pub skipped: usize,
@@ -51,6 +58,10 @@ pub struct ListParse<T> {
 
 pub fn parse_session_info(payload: &Value) -> Option<RawSessionInfo> {
     RawSessionInfo::deserialize(payload).ok()
+}
+
+pub fn parse_game_state(payload: &Value) -> Option<RawGameState> {
+    RawGameState::deserialize(payload).ok()
 }
 
 pub fn parse_standings(payload: &Value) -> Option<ListParse<RawStandingEntry>> {
@@ -90,6 +101,7 @@ mod tests {
     fn live(name: &str) -> Value {
         let raw = match name {
             "session" => include_str!("../../../tests/fixtures/live-session-info.json"),
+            "game" => include_str!("../../../tests/fixtures/live-game-state.json"),
             _ => include_str!("../../../tests/fixtures/live-standings.json"),
         };
         serde_json::from_str(raw).expect("fixture parses")
@@ -101,6 +113,12 @@ mod tests {
         assert_eq!(parsed.game_phase, 5.0);
         assert_eq!(parsed.session, "PRACTICE1");
         assert_eq!(parsed.track_name, "Autodromo Nazionale Monza");
+    }
+
+    #[test]
+    fn reads_whether_the_replay_is_open_from_a_real_game_state() {
+        let parsed = parse_game_state(&live("game")).expect("live GetGameState must parse");
+        assert!(!parsed.is_replay_active);
     }
 
     #[test]

@@ -5,6 +5,7 @@ import { formatHms, parseHms } from '../lib/format'
 import { cx } from '../ui/primitives'
 import ui from '../ui/ui.module.scss'
 import { useWorkspace } from '../workspace/Workspace'
+import { GoToReplay } from './GoToReplay'
 import styles from './Inspector.module.scss'
 
 const NUDGES = [-5, -1, 1, 5]
@@ -86,6 +87,7 @@ export function WhenSection({
           <Icon name="copy" size={13} />
           Copy
         </button>
+        <GoToReplay seconds={eventSeconds} cars={incident.cars} />
       </div>
     </section>
   )

@@ -52,6 +52,7 @@ pub fn run() {
             commands::incidents::archive_session,
             commands::incidents::flush_session,
             commands::incidents::import_sessions,
+            commands::replay::go_to_replay,
             commands::settings::update_config,
             commands::settings::set_adapter,
             commands::rulebook::import_rulebook,
